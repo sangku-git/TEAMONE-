@@ -670,6 +670,20 @@ function fmtAvg(v){
 function fmtOps(v){ if (v===null||v===undefined||isNaN(v)) return '-'; return v.toFixed(3); }
 function fmtNum(v){ if (v===null||v===undefined||isNaN(v)) return '-'; if (Number.isInteger(v)) return String(v); return v.toFixed(2); }
 function fmtInt(v){ if (v===null||v===undefined) return '-'; return String(v); }
+function fmtIP(v){ if (v===null||v===undefined||isNaN(v)) return '-'; return v.toFixed(1); }
+
+/* baseball innings notation: X.0/X.1/X.2 only (.1=1 out, .2=2 outs; 3 outs rolls to next whole inning) */
+function outsFromIP(ip){
+  if (ip === null || ip === undefined || isNaN(ip)) return 0;
+  const whole = Math.trunc(ip);
+  const frac = Math.round((Math.abs(ip) - Math.abs(whole)) * 10); // 0,1,2
+  return whole*3 + frac;
+}
+function ipFromOuts(outs){
+  const whole = Math.floor(outs/3);
+  const rem = outs - whole*3; // 0,1,2
+  return whole + rem/10;
+}
 
 /* ---------- raw field lists ---------- */
 const BATTER_FIELDS = ['타석','타수','안타계','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','희타','희비','볼넷','사구','삼진','병살'];
@@ -688,9 +702,10 @@ function computeBatterRates(acc){
   return {...acc, 타율:avg, 장타율:slg, 출루율:obp, OPS: obp+slg};
 }
 function computePitcherRates(acc){
-  const ip = acc['이닝']||0;
-  const era = ip ? (acc['자책점']||0)*9/ip : 0;
-  const whip = ip ? ((acc['볼넷']||0)+(acc['피안타']||0))/ip : 0;
+  const outs = (acc['아웃수']!=null) ? acc['아웃수'] : outsFromIP(acc['이닝']);
+  const ipTrue = outs/3;
+  const era = ipTrue ? (acc['자책점']||0)*9/ipTrue : 0;
+  const whip = ipTrue ? ((acc['볼넷']||0)+(acc['피안타']||0))/ipTrue : 0;
   const avg = (acc['타수']||0) ? (acc['피안타']||0)/(acc['타수']||0) : 0;
   return {...acc, ERA: era, WHIP: whip, 피안타율: avg};
 }
@@ -723,14 +738,18 @@ function aggregatePitchersByPlayer(games){
   const map = {};
   for (const g of games){
     for (const p of g.pitchers){
-      if (!map[p['이름']]) map[p['이름']] = {이름:p['이름'], ...emptyAcc(PITCHER_FIELDS), 승:0, 패:0, 등판:0};
+      if (!map[p['이름']]) map[p['이름']] = {이름:p['이름'], ...emptyAcc(PITCHER_FIELDS), 승:0, 패:0, 등판:0, 아웃수:0};
       const acc = map[p['이름']];
-      PITCHER_FIELDS.forEach(f=>acc[f]+=(p[f]||0));
+      PITCHER_FIELDS.forEach(f=>{ if (f!=='이닝') acc[f]+=(p[f]||0); });
+      acc['아웃수'] += outsFromIP(p['이닝']);
       acc['승'] += (p['승']||0); acc['패'] += (p['패']||0);
       acc['등판'] += 1;
     }
   }
-  return Object.values(map).map(computePitcherRates);
+  return Object.values(map).map(acc=>{
+    acc['이닝'] = ipFromOuts(acc['아웃수']);
+    return computePitcherRates(acc);
+  });
 }
 function recordFromGames(games){
   const r = {W:0,L:0,D:0};
@@ -929,7 +948,7 @@ function renderLeaders(){
 const pitcherCols = [
   {k:'이름', label:'선수', fmt:v=>v},
   {k:'ERA', label:'방어율', fmt:fmtNum, num:true},
-  {k:'이닝', label:'이닝', fmt:fmtNum, num:true},
+  {k:'이닝', label:'이닝', fmt:fmtIP, num:true},
   {k:'승', label:'승', fmt:fmtInt},
   {k:'패', label:'패', fmt:fmtInt},
   {k:'타자', label:'상대타자', fmt:fmtInt},
@@ -948,8 +967,13 @@ function renderPitcherBreakdown(name){
     const rows_y = aggregatePitchersByPlayer(DATA.years[y].games).filter(r=>r['이름']===name);
     if (rows_y.length) rows.push({year:y, ...rows_y[0]});
   });
-  const totalAcc = {...emptyAcc(PITCHER_FIELDS), 승:0, 패:0};
-  rows.forEach(r=>{ PITCHER_FIELDS.forEach(f=>totalAcc[f]+=r[f]); totalAcc['승']+=r['승']; totalAcc['패']+=r['패']; });
+  const totalAcc = {...emptyAcc(PITCHER_FIELDS), 승:0, 패:0, 아웃수:0};
+  rows.forEach(r=>{
+    PITCHER_FIELDS.forEach(f=>{ if (f!=='이닝') totalAcc[f]+=r[f]; });
+    totalAcc['아웃수'] += r['아웃수'];
+    totalAcc['승']+=r['승']; totalAcc['패']+=r['패'];
+  });
+  totalAcc['이닝'] = ipFromOuts(totalAcc['아웃수']);
   const total = computePitcherRates(totalAcc);
   const cols = pitcherCols.filter(c=>c.k!=='이름');
   const rowHtml = (label, r, isTotal) => `<tr class="${isTotal?'total-row':''}"><td>${label}</td>` +
