@@ -258,7 +258,7 @@ thead th{
   border-bottom:1px solid var(--line);
   user-select:none;
 }
-thead th:first-child, thead th:nth-child(2){text-align:left;}
+thead th:first-child{text-align:left;}
 thead th .arrow{opacity:.4; margin-left:3px; font-size:9px;}
 thead th.sorted{color:var(--clay-bright);}
 thead th.sorted .arrow{opacity:1;}
@@ -273,24 +273,9 @@ tbody td{
 tbody td:first-child{
   text-align:left; font-family:'Inter',sans-serif; color:var(--muted); font-size:11px;
 }
-tbody td:nth-child(2){
-  text-align:left; font-family:'Inter',sans-serif; font-weight:600; color:var(--chalk);
-  position:sticky; left:0; background:var(--panel);
-}
-tbody tr.playerrow{cursor:pointer;}
-tbody tr.playerrow:hover td{background:rgba(130,173,232,.06);}
-tbody tr.playerrow:hover td:nth-child(2){background:rgba(130,173,232,.1);}
-tbody tr.playerrow td:nth-child(2)::before{
-  content:"▸"; display:inline-block; margin-right:5px; font-size:9px; color:var(--muted);
-  transition:transform .15s ease;
-}
-tbody tr.playerrow.open td:nth-child(2)::before{transform:rotate(90deg); color:var(--gold);}
 td.hl{color:var(--gold); font-weight:700;}
 td.zero{color:rgba(207,216,201,.3);}
 tbody tr.inactive td{opacity:.4;}
-tbody tr.subrow td{color:var(--muted);}
-tbody tr.subrow td:nth-child(2){font-weight:500; color:var(--chalk-dim);}
-tbody tr.subrow{background:rgba(255,255,255,.015);}
 .subtag{
   display:inline-block; font-family:'JetBrains Mono',monospace; font-size:9.5px;
   color:var(--clay-bright); background:rgba(130,173,232,.14);
@@ -302,6 +287,32 @@ tbody tr.subrow{background:rgba(255,255,255,.015);}
   margin-top:1px; letter-spacing:.02em;
 }
 
+/* sticky-col1: use when column 1 is the name (season/career tables, pitcher box score) */
+.sticky-col1 thead th:first-child{text-align:left;}
+.sticky-col1 tbody td:first-child{
+  text-align:left; font-family:'Inter',sans-serif; font-weight:700; color:var(--chalk);
+  font-size:14.5px;
+  position:sticky; left:0; background:var(--panel);
+}
+.sticky-col1 tbody tr.playerrow{cursor:pointer;}
+.sticky-col1 tbody tr.playerrow:hover td{background:rgba(130,173,232,.06);}
+.sticky-col1 tbody tr.playerrow:hover td:first-child{background:rgba(130,173,232,.1);}
+.sticky-col1 tbody tr.playerrow td:first-child::before{
+  content:"▸"; display:inline-block; margin-right:5px; font-size:9px; color:var(--muted);
+  transition:transform .15s ease;
+}
+.sticky-col1 tbody tr.playerrow.open td:first-child::before{transform:rotate(90deg); color:var(--gold);}
+
+/* sticky-col2: use when column 1 is a short label (batting order '순') and column 2 is the name */
+.sticky-col2 thead th:first-child, .sticky-col2 thead th:nth-child(2){text-align:left;}
+.sticky-col2 tbody td:nth-child(2){
+  text-align:left; font-family:'Inter',sans-serif; font-weight:600; color:var(--chalk);
+  position:sticky; left:0; background:var(--panel);
+}
+.sticky-col2 tbody tr.subrow td{color:var(--muted);}
+.sticky-col2 tbody tr.subrow td:nth-child(2){font-weight:500; color:var(--chalk-dim);}
+.sticky-col2 tbody tr.subrow{background:rgba(255,255,255,.015);}
+
 /* year breakdown sub-table */
 .breakdown-row{display:none;}
 .breakdown-row.open{display:table-row;}
@@ -311,7 +322,7 @@ tbody tr.subrow{background:rgba(255,255,255,.015);}
 .breakdown-inner thead th{background:transparent; color:var(--muted); font-size:10px; padding:6px 8px;}
 .breakdown-inner tbody td{padding:6px 8px; border-bottom:1px solid rgba(43,70,54,.35);}
 .breakdown-inner tbody tr.total-row td{color:var(--gold); font-weight:700; border-top:1px solid var(--line);}
-.breakdown-inner tbody tr.total-row td:nth-child(2){color:var(--gold);}
+.breakdown-inner tbody tr.total-row td:first-child{color:var(--gold);}
 
 /* game cards */
 .games-list{display:flex; flex-direction:column; gap:10px;}
@@ -513,7 +524,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
     <div class="leaders" id="leaders"></div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
     <div class="table-scroll">
-      <table id="batterTable">
+      <table id="batterTable" class="sticky-col1">
         <thead><tr id="batterHead"></tr></thead>
         <tbody id="batterBody"></tbody>
       </table>
@@ -527,7 +538,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
     </div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
     <div class="table-scroll">
-      <table id="pitcherTable">
+      <table id="pitcherTable" class="sticky-col1">
         <thead><tr id="pitcherHead"></tr></thead>
         <tbody id="pitcherBody"></tbody>
       </table>
@@ -1015,7 +1026,7 @@ function battingSortKey(b){
 
 function gameBoxTable(cols, rows){
   if (!rows.length) return '<div class="empty" style="padding:14px;">기록 없음</div>';
-  return `<div class="table-scroll"><table>
+  return `<div class="table-scroll"><table class="sticky-col1">
     <thead><tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(r=>'<tr>'+cols.map(c=>{
       const v = r[c.k];
@@ -1040,7 +1051,7 @@ function batterBoxTable(rows){
     }).join('');
     return `<tr class="${isSub?'subrow':''}"><td>${slotDisp}</td><td>${r['이름']} ${badge}${posLine}</td>${rest}</tr>`;
   }).join('');
-  return `<div class="table-scroll"><table>
+  return `<div class="table-scroll"><table class="sticky-col2">
     <thead><tr>${gameBatterCols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
     <tbody>${body}</tbody>
   </table></div>`;
