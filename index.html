@@ -1018,7 +1018,7 @@ function renderBatterBody(){
   });
 }
 
-const QUALIFY_PA_PER_GAME = 2.0; // 프로는 3.1, 아마추어라 2.0 적용
+const QUALIFY_PA_PER_GAME = 1.0; // 팀원 특성상 완화: 경기수만큼(19경기=19타석)
 const leaderDefs = [
   {label:'타율왕', key:'타율', fmt:fmtAvg, rate:true},
   {label:'홈런왕', key:'홈런', fmt:fmtInt},
@@ -1045,7 +1045,7 @@ function renderLeaders(){
     return `<div class="leader-card"><div class="cat">${d.label}</div>${rows}</div>`;
   }).join('');
   document.getElementById('leadersNote').innerHTML =
-    `＊ 타율왕·OPS 1위는 규정타석(경기수×2.0 = ${minPA}타석) 이상만 집계돼요.`;
+    `＊ 타율왕·OPS 1위는 규정타석(경기수×${QUALIFY_PA_PER_GAME.toFixed(1)} = ${minPA}타석) 이상만 집계돼요.`;
 }
 
 /* ---------- PITCHERS ---------- */
