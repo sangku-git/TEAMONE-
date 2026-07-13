@@ -290,6 +290,10 @@ tbody tr.subrow{background:rgba(255,255,255,.015);}
   border:1px solid rgba(130,173,232,.3); border-radius:20px; padding:1px 7px;
   margin-left:5px; vertical-align:middle; letter-spacing:.02em;
 }
+.pos-line{
+  font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--muted);
+  margin-top:1px; letter-spacing:.02em;
+}
 
 /* year breakdown sub-table */
 .breakdown-row{display:none;}
@@ -431,9 +435,14 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
   padding:6px 5px; color:var(--chalk); font-family:'JetBrains Mono',monospace; font-size:12px;
   text-align:center; outline:none;
 }
+.entry-table-scroll select{
+  width:72px; background:var(--bg-deep); border:1px solid var(--line); border-radius:5px;
+  padding:6px 2px; color:var(--chalk); font-family:'Inter',sans-serif; font-size:11.5px;
+  text-align:center; outline:none;
+}
 .entry-table-scroll input[data-f="이름"]{width:88px; font-family:'Inter',sans-serif; text-align:left;}
 .entry-table-scroll input[data-f="타순"]{width:56px;}
-.entry-table-scroll input:focus{border-color:var(--clay-bright);}
+.entry-table-scroll input:focus, .entry-table-scroll select:focus{border-color:var(--clay-bright);}
 .row-del{
   background:none; border:none; color:var(--loss); cursor:pointer; font-size:15px; padding:2px 6px;
 }
@@ -575,7 +584,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
       <div class="table-scroll entry-table-scroll">
         <table id="battersEntryTable">
           <thead><tr>
-            <th>타순</th><th>이름</th><th>타석</th><th>타수</th>
+            <th>타순</th><th>이름</th><th>포지션</th><th>타석</th><th>타수</th>
             <th>1루타</th><th>2루타</th><th>3루타</th><th>홈런</th>
             <th>타점</th><th>득점</th><th>도루</th><th>도루자</th>
             <th>볼넷</th><th>사구</th><th>삼진</th><th>희타</th><th>희비</th><th>병살</th><th></th>
@@ -1014,11 +1023,12 @@ function batterBoxTable(rows){
     const isSub = !!tag;
     const slotDisp = isSub ? '' : (pureP ? 'P' : (num!=null ? num : '-'));
     const badge = tag ? `<span class="subtag">${tag}</span>` : (pureP ? `<span class="subtag">P</span>` : (hasP ? `<span class="subtag">P</span>` : ''));
+    const posLine = r['포지션'] ? `<div class="pos-line">${r['포지션']}</div>` : '';
     const rest = restCols.map(c=>{
       const v = r[c.k];
       return `<td class="${v===0?'zero':''}">${fmtInt(v)}</td>`;
     }).join('');
-    return `<tr class="${isSub?'subrow':''}"><td>${slotDisp}</td><td>${r['이름']} ${badge}</td>${rest}</tr>`;
+    return `<tr class="${isSub?'subrow':''}"><td>${slotDisp}</td><td>${r['이름']} ${badge}${posLine}</td>${rest}</tr>`;
   }).join('');
   return `<div class="table-scroll"><table>
     <thead><tr>${gameBatterCols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
@@ -1146,8 +1156,9 @@ function allKnownLeagues(){
   ALL_GAMES.forEach(g=>{ if (g.league) s.add(g.league); });
   return [...s];
 }
-const batterEntryFieldOrder = ['타순','이름','타석','타수','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','볼넷','사구','삼진','희타','희비','병살'];
+const batterEntryFieldOrder = ['타순','이름','포지션','타석','타수','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','볼넷','사구','삼진','희타','희비','병살'];
 const pitcherEntryFieldOrder = ['이름','이닝','타자','타수','피안타','피홈런','볼넷','사구','탈삼진','실점','자책점','승','패'];
+const POSITIONS = ['투수','포수','1루수','2루수','3루수','유격수','좌익수','중견수','우익수','지명타자'];
 
 function addBatterEntryRow(){
   const tbody = document.getElementById('battersEntryBody');
@@ -1155,6 +1166,7 @@ function addBatterEntryRow(){
   tr.innerHTML = batterEntryFieldOrder.map(f=>{
     if (f === '이름') return `<td><input type="text" data-f="이름" list="rosterList" placeholder="이름" /></td>`;
     if (f === '타순') return `<td><input type="text" data-f="타순" placeholder="1" /></td>`;
+    if (f === '포지션') return `<td><select data-f="포지션"><option value="">-</option>${POSITIONS.map(p=>`<option value="${p}">${p}</option>`).join('')}</select></td>`;
     return `<td><input type="number" data-f="${f}" placeholder="0" /></td>`;
   }).join('') + `<td><button type="button" class="row-del">✕</button></td>`;
   tr.querySelector('.row-del').addEventListener('click', ()=>tr.remove());
@@ -1221,9 +1233,10 @@ function collectEntryForm(){
     const row = {'이름': name, '게임': 1};
     batterEntryFieldOrder.forEach(f=>{
       if (f==='이름') return;
-      const inp = tr.querySelector(`input[data-f="${f}"]`);
+      const inp = tr.querySelector(`[data-f="${f}"]`);
       const raw = inp.value.trim();
       if (f === '타순'){ row['타순'] = raw || null; return; }
+      if (f === '포지션'){ row['포지션'] = raw || null; return; }
       row[f] = raw === '' ? 0 : Number(raw);
     });
     row['안타계'] = (row['1루타']||0) + (row['2루타']||0) + (row['3루타']||0) + (row['홈런']||0);
@@ -1285,10 +1298,11 @@ function resetEntryForm(){
 
 function fillBatterEntryRow(tr, b){
   batterEntryFieldOrder.forEach(f=>{
-    const inp = tr.querySelector(`input[data-f="${f}"]`);
+    const inp = tr.querySelector(`[data-f="${f}"]`);
     if (!inp) return;
     if (f === '이름') inp.value = b['이름'] || '';
     else if (f === '타순') inp.value = (b['타순']!=null) ? b['타순'] : '';
+    else if (f === '포지션') inp.value = b['포지션'] || '';
     else inp.value = b[f] ? b[f] : '';
   });
 }
