@@ -528,6 +528,15 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
 .entry-table-scroll input[data-f="이름"]{width:88px; font-family:'Inter',sans-serif; text-align:left;}
 .entry-table-scroll input[data-f="타순"]{width:56px;}
 .entry-table-scroll input:focus, .entry-table-scroll select:focus{border-color:var(--clay-bright);}
+/* keep 선수 이름 visible while scrolling right through the many stat columns */
+.entry-sticky-2 thead th:nth-child(2), .entry-sticky-2 tbody td:nth-child(2){
+  position:sticky; left:0; z-index:2; background:var(--panel);
+}
+.entry-sticky-2 thead th:nth-child(2){background:var(--panel-2);}
+.entry-sticky-1 thead th:first-child, .entry-sticky-1 tbody td:first-child{
+  position:sticky; left:0; z-index:2; background:var(--panel);
+}
+.entry-sticky-1 thead th:first-child{background:var(--panel-2);}
 .row-del{
   background:none; border:none; color:var(--loss); cursor:pointer; font-size:15px; padding:2px 6px;
 }
@@ -694,7 +703,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
       <h4>타자 기록</h4>
       <div class="scroll-hint">← 좌우로 스크롤 →</div>
       <div class="table-scroll entry-table-scroll">
-        <table id="battersEntryTable">
+        <table id="battersEntryTable" class="entry-sticky-2">
           <thead><tr>
             <th>타순</th><th>이름</th><th>포지션</th><th>타석</th><th>타수</th>
             <th>1루타</th><th>2루타</th><th>3루타</th><th>홈런</th>
@@ -709,9 +718,9 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
       <h4>투수 기록</h4>
       <div class="scroll-hint">← 좌우로 스크롤 →</div>
       <div class="table-scroll entry-table-scroll">
-        <table id="pitchersEntryTable">
+        <table id="pitchersEntryTable" class="entry-sticky-1">
           <thead><tr>
-            <th>이름</th><th>이닝</th><th>상대타자</th><th>타수</th><th>피안타</th><th>피홈런</th>
+            <th>이름</th><th>이닝</th><th>투구수</th><th>상대타자</th><th>타수</th><th>피안타</th><th>피홈런</th>
             <th>볼넷</th><th>사구</th><th>탈삼진</th><th>실점</th><th>자책점</th><th>승</th><th>패</th><th></th>
           </tr></thead>
           <tbody id="pitchersEntryBody"></tbody>
@@ -778,7 +787,7 @@ function ipFromOuts(outs){
 
 /* ---------- raw field lists ---------- */
 const BATTER_FIELDS = ['타석','타수','안타계','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','희타','희비','볼넷','사구','삼진','병살'];
-const PITCHER_FIELDS = ['타자','타수','이닝','피안타','피홈런','희타','희비','볼넷','사구','탈삼진','폭투','보크','실점','자책점'];
+const PITCHER_FIELDS = ['타자','타수','이닝','투구수','피안타','피홈런','희타','희비','볼넷','사구','탈삼진','폭투','보크','실점','자책점'];
 
 function emptyAcc(fields){ const a={}; fields.forEach(f=>a[f]=0); return a; }
 
@@ -1071,6 +1080,7 @@ const pitcherCols = [
   {k:'이름', label:'선수', fmt:v=>v},
   {k:'ERA', label:'방어율', fmt:fmtNum, num:true},
   {k:'이닝', label:'이닝', fmt:fmtIP, num:true},
+  {k:'투구수', label:'투구수', fmt:fmtInt, num:true},
   {k:'승', label:'승', fmt:fmtInt},
   {k:'패', label:'패', fmt:fmtInt},
   {k:'타자', label:'상대타자', fmt:fmtInt},
@@ -1105,7 +1115,7 @@ function renderPitcherBreakdown(name){
     .map(g=>({g, p:g.pitchers.find(x=>x['이름']===name)}))
     .filter(x=>x.p);
   const logCols = [
-    {k:'이닝',l:'이닝',fmt:fmtIP},{k:'타자',l:'상대타자',fmt:fmtInt},{k:'피안타',l:'피안타',fmt:fmtInt},
+    {k:'이닝',l:'이닝',fmt:fmtIP},{k:'투구수',l:'투구수',fmt:fmtInt},{k:'타자',l:'상대타자',fmt:fmtInt},{k:'피안타',l:'피안타',fmt:fmtInt},
     {k:'볼넷',l:'볼넷',fmt:fmtInt},{k:'탈삼진',l:'탈삼진',fmt:fmtInt},{k:'실점',l:'실점',fmt:fmtInt},{k:'자책점',l:'자책점',fmt:fmtInt},
   ];
   const logHtml = logGames.length ? `
@@ -1167,7 +1177,7 @@ const gameBatterCols = [
   {k:'타점', label:'타점'}, {k:'득점', label:'득점'}, {k:'도루', label:'도루'}, {k:'볼넷', label:'볼넷'}, {k:'삼진', label:'삼진'},
 ];
 const gamePitcherCols = [
-  {k:'이름', label:'선수'}, {k:'이닝', label:'이닝'}, {k:'타자', label:'상대타자'}, {k:'피안타', label:'피안타'},
+  {k:'이름', label:'선수'}, {k:'이닝', label:'이닝'}, {k:'투구수', label:'투구수'}, {k:'타자', label:'상대타자'}, {k:'피안타', label:'피안타'},
   {k:'볼넷', label:'볼넷'}, {k:'탈삼진', label:'탈삼진'}, {k:'실점', label:'실점'}, {k:'자책점', label:'자책점'},
 ];
 
@@ -1222,7 +1232,7 @@ function batterBoxTable(rows){
 }
 
 function renderGames(){
-  const games = gamesForScope(currentYear);
+  const games = [...gamesForScope(currentYear)].sort((a,b)=> (a.year+a.date_code).localeCompare(b.year+b.date_code));
   const gamesList = document.getElementById('gamesList');
   gamesList.innerHTML = games.map((g, idx)=>{
     const {m,d} = fmtDate(g.date_code);
@@ -1450,7 +1460,7 @@ function allKnownLeagues(){
   return [...s];
 }
 const batterEntryFieldOrder = ['타순','이름','포지션','타석','타수','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','볼넷','사구','삼진','희타','희비','병살'];
-const pitcherEntryFieldOrder = ['이름','이닝','타자','타수','피안타','피홈런','볼넷','사구','탈삼진','실점','자책점','승','패'];
+const pitcherEntryFieldOrder = ['이름','이닝','투구수','타자','타수','피안타','피홈런','볼넷','사구','탈삼진','실점','자책점','승','패'];
 const POSITIONS = ['투수','포수','1루수','2루수','3루수','유격수','좌익수','중견수','우익수','지명타자'];
 
 function addBatterEntryRow(){
