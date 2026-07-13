@@ -316,15 +316,29 @@ tbody tr.inactive td{opacity:.4;}
 }
 .sticky-col1 tbody tr.playerrow.open td:first-child::before{transform:rotate(90deg); color:var(--gold);}
 
-/* sticky-col2: use when column 1 is a short label (batting order '순') and column 2 is the name */
+/* sticky-col2: use when column 1 is a short label (batting order '순', or rank '#') and column 2 is the name */
 .sticky-col2 thead th:first-child, .sticky-col2 thead th:nth-child(2){text-align:left;}
 .sticky-col2 tbody td:nth-child(2){
-  text-align:left; font-family:'Inter',sans-serif; font-weight:600; color:var(--chalk);
+  text-align:left; font-family:'Inter',sans-serif; font-weight:700; color:var(--chalk);
+  font-size:14.5px;
   position:sticky; left:0; background:var(--panel);
 }
 .sticky-col2 tbody tr.subrow td{color:var(--muted);}
-.sticky-col2 tbody tr.subrow td:nth-child(2){font-weight:500; color:var(--chalk-dim);}
+.sticky-col2 tbody tr.subrow td:nth-child(2){font-weight:500; color:var(--chalk-dim); font-size:13px;}
 .sticky-col2 tbody tr.subrow{background:rgba(255,255,255,.015);}
+.sticky-col2 tbody tr.playerrow{cursor:pointer;}
+.sticky-col2 tbody tr.playerrow:hover td{background:rgba(130,173,232,.06);}
+.sticky-col2 tbody tr.playerrow:hover td:nth-child(2){background:rgba(130,173,232,.1);}
+.sticky-col2 tbody tr.playerrow td:nth-child(2)::before{
+  content:"▸"; display:inline-block; margin-right:5px; font-size:9px; color:var(--muted);
+  transition:transform .15s ease;
+}
+.sticky-col2 tbody tr.playerrow.open td:nth-child(2)::before{transform:rotate(90deg); color:var(--gold);}
+.rank-th{text-align:center !important;}
+.rank-cell{
+  text-align:center; font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:11px;
+}
+.rank-of{color:rgba(147,168,147,.45);}
 
 /* year breakdown sub-table */
 .breakdown-row{display:none;}
@@ -579,7 +593,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
     <div class="leaders-note" id="leadersNote"></div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
     <div class="table-scroll">
-      <table id="batterTable" class="sticky-col1">
+      <table id="batterTable" class="sticky-col2">
         <thead><tr id="batterHead"></tr></thead>
         <tbody id="batterBody"></tbody>
       </table>
@@ -924,12 +938,12 @@ let batterSort = {col:'타율', dir:-1};
 
 function renderBatterHead(){
   const head = document.getElementById('batterHead');
-  head.innerHTML = batterCols.map(c=>{
+  head.innerHTML = '<th class="rank-th">#</th>' + batterCols.map(c=>{
     const sorted = c.k === batterSort.col;
     const arrow = sorted ? (batterSort.dir===1?'▲':'▼') : '';
     return `<th data-k="${c.k}" class="${sorted?'sorted':''}">${c.label}<span class="arrow">${arrow}</span></th>`;
   }).join('');
-  head.querySelectorAll('th').forEach(th=>{
+  head.querySelectorAll('th[data-k]').forEach(th=>{
     th.addEventListener('click', ()=>{
       const k = th.dataset.k;
       if (batterSort.col === k) batterSort.dir *= -1;
@@ -998,15 +1012,19 @@ function renderBatterBody(){
     av = av ?? -Infinity; bv = bv ?? -Infinity;
     return batterSort.dir * (av - bv);
   });
+  const total = rows.length;
+  const label = currentYear===CAREER ? '통산' : currentYear+' 시즌';
+  document.getElementById('battersTitle').textContent = `${label} 타자 부문 · 전체 ${total}명`;
   const body = document.getElementById('batterBody');
-  body.innerHTML = rows.map(r=>{
+  body.innerHTML = rows.map((r,i)=>{
     const isOpen = openPlayer === r['이름'];
-    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + batterCols.map(c=>{
+    const rankCell = `<td class="rank-cell">${i+1}</td>`;
+    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + rankCell + batterCols.map(c=>{
       const v = r[c.k];
       const cls = (c.k===batterSort.col) ? 'hl' : ((v===0||v===null)?'zero':'');
       return `<td class="${cls}">${c.fmt(v)}</td>`;
     }).join('') + `</tr>`;
-    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${batterCols.length}">${isOpen?renderBatterBreakdown(r['이름']):''}</td></tr>`;
+    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${batterCols.length+1}">${isOpen?renderBatterBreakdown(r['이름']):''}</td></tr>`;
     return mainRow + breakdownRow;
   }).join('');
   body.querySelectorAll('tr.playerrow').forEach(tr=>{
@@ -1360,7 +1378,6 @@ function renderTeamRecords(){
 /* ---------- TITLES ---------- */
 function renderTitles(){
   const label = currentYear===CAREER ? '통산' : currentYear+' 시즌';
-  document.getElementById('battersTitle').textContent = label+' 타자 부문';
   document.getElementById('pitchersTitle').textContent = label+' 투수 부문';
   document.getElementById('gamesTitle').textContent = (currentYear===CAREER?'전체':label)+' 경기별 기록';
   document.getElementById('teamTitle').textContent = label+' 팀 기록';
