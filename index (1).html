@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TEAMONE 시즌 기록</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #121a2e;
+  --bg-deep: #090e1c;
+  --panel: #1b2740;
+  --panel-2: #22314f;
+  --line: #30436b;
+  --chalk: #f5f7fb;
+  --chalk-dim: #c7cfe0;
+  --clay: #4f74ab;
+  --clay-bright: #82ade8;
+  --gold: #bcd4f6;
+  --grass: #26365a;
+  --muted: #8492b3;
+  --win: #6fae6f;
+  --loss: #d0594a;
+  --draw: #b8a468;
+  --radius: 10px;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(130,173,232,.07), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.015) 0 40px, rgba(0,0,0,.02) 40px 80px),
+    var(--bg);
+  color:var(--chalk);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+::selection{background:var(--gold);color:var(--bg-deep);}
+h1,h2,h3,.display{font-family:'Teko',sans-serif;font-weight:600;letter-spacing:.02em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+a{color:inherit;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative;
+  padding:52px 0 26px;
+  overflow:hidden;
+  border-bottom:1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.15), transparent 40%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 2px, transparent 2px 64px);
+}
+.hero::before{
+  content:"";
+  position:absolute; left:50%; top:-180px;
+  width:900px; height:900px;
+  border:2px solid rgba(245,247,251,.06);
+  border-radius:50%;
+  transform:translateX(-50%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  display:flex; align-items:center; gap:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:6px;
+}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--clay-bright);box-shadow:0 0 8px var(--clay-bright);}
+.hero h1{
+  font-size:clamp(56px, 13vw, 108px);
+  line-height:.9;
+  margin:0 0 4px;
+  color:var(--chalk);
+  text-shadow:0 2px 0 rgba(0,0,0,.3);
+}
+.hero h1 span{color:var(--clay-bright);}
+.hero-sub{
+  font-size:15px; color:var(--muted); max-width:560px; margin:6px 0 22px;
+  line-height:1.6;
+}
+.hero-sub b{color:var(--chalk-dim);font-weight:600;}
+
+/* year pills */
+.year-pills{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;}
+.year-pill{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px; letter-spacing:.04em;
+  padding:7px 16px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.2);
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.year-pill:hover{border-color:var(--clay-bright); color:var(--chalk-dim);}
+.year-pill.active{
+  background:var(--gold); border-color:var(--gold); color:var(--bg-deep); font-weight:700;
+}
+
+/* scoreboard tiles */
+.board{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:2px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.tile{
+  background:var(--bg-deep);
+  padding:16px 8px 12px;
+  text-align:center;
+}
+.tile .num{
+  font-family:'Teko',sans-serif;
+  font-size:clamp(24px,5.5vw,40px);
+  font-weight:600;
+  color:var(--gold);
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.tile.record .num .w{color:var(--win);}
+.tile.record .num .l{color:var(--loss);}
+.tile.record .num .d{color:var(--draw);}
+.tile.record .num .sep{color:var(--muted); font-size:.7em; margin:0 2px;}
+.tile .lbl{
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); margin-top:6px;
+}
+@media (max-width:640px){
+  .board{grid-template-columns:repeat(3,1fr);}
+  .tile{padding:12px 4px 10px;}
+}
+
+/* ---------- NAV ---------- */
+.tabbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(15,32,24,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.tabbar-inner{
+  max-width:1080px;margin:0 auto;padding:0 20px;
+  display:flex; gap:4px; overflow-x:auto;
+  scrollbar-width:none;
+}
+.tabbar-inner::-webkit-scrollbar{display:none;}
+.tab{
+  flex:0 0 auto;
+  padding:16px 14px 13px;
+  font-family:'Teko',sans-serif;
+  font-size:19px; letter-spacing:.03em;
+  color:var(--muted);
+  background:none; border:none; cursor:pointer;
+  border-bottom:3px solid transparent;
+  white-space:nowrap;
+  transition:color .15s ease;
+}
+.tab:hover{color:var(--chalk-dim);}
+.tab.active{color:var(--gold); border-bottom-color:var(--clay-bright);}
+
+/* ---------- SECTIONS ---------- */
+main{padding:36px 0 90px;}
+.panel{display:none;}
+.panel.active{display:block; animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);}}
+
+.section-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+  margin:0 0 18px; gap:12px; flex-wrap:wrap;
+}
+.section-head h2{font-size:32px; margin:0; color:var(--chalk);}
+.section-head .note{font-size:12.5px; color:var(--muted);}
+
+/* leader cards */
+.leaders{
+  display:grid; grid-template-columns:repeat(5,1fr); gap:10px;
+  margin-bottom:30px;
+}
+@media (max-width:900px){.leaders{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:560px){.leaders{grid-template-columns:repeat(2,1fr);}}
+.leader-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px 14px 12px;
+  position:relative;
+  overflow:hidden;
+}
+.leader-card::before{
+  content:"";
+  position:absolute; top:-30%; right:-20%; width:80px;height:80px;
+  background:radial-gradient(circle, rgba(130,173,232,.16), transparent 70%);
+}
+.leader-card .cat{
+  font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:8px; font-weight:600;
+}
+.leader-card .name{font-size:16px; font-weight:700; color:var(--chalk);}
+.leader-card .val{
+  font-family:'Teko',sans-serif; font-size:30px; color:var(--clay-bright);
+  line-height:1; margin-top:2px;
+}
+
+/* table */
+.table-scroll{
+  overflow-x:auto;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--panel);
+  -webkit-overflow-scrolling:touch;
+}
+table{border-collapse:collapse; width:100%; font-size:13px;}
+thead th{
+  position:sticky; top:0;
+  background:var(--panel-2);
+  color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  font-weight:600; font-size:11px; letter-spacing:.03em;
+  padding:10px 10px;
+  text-align:right;
+  white-space:nowrap;
+  cursor:pointer;
+  border-bottom:1px solid var(--line);
+  user-select:none;
+}
+thead th:first-child, thead th:nth-child(2){text-align:left;}
+thead th .arrow{opacity:.4; margin-left:3px; font-size:9px;}
+thead th.sorted{color:var(--clay-bright);}
+thead th.sorted .arrow{opacity:1;}
+tbody td{
+  padding:9px 10px;
+  text-align:right;
+  font-family:'JetBrains Mono',monospace;
+  color:var(--chalk-dim);
+  white-space:nowrap;
+  border-bottom:1px solid rgba(43,70,54,.5);
+}
+tbody td:first-child{
+  text-align:left; font-family:'Inter',sans-serif; color:var(--muted); font-size:11px;
+}
+tbody td:nth-child(2){
+  text-align:left; font-family:'Inter',sans-serif; font-weight:600; color:var(--chalk);
+  position:sticky; left:0; background:var(--panel);
+}
+tbody tr.playerrow{cursor:pointer;}
+tbody tr.playerrow:hover td{background:rgba(130,173,232,.06);}
+tbody tr.playerrow:hover td:nth-child(2){background:rgba(130,173,232,.1);}
+tbody tr.playerrow td:nth-child(2)::before{
+  content:"▸"; display:inline-block; margin-right:5px; font-size:9px; color:var(--muted);
+  transition:transform .15s ease;
+}
+tbody tr.playerrow.open td:nth-child(2)::before{transform:rotate(90deg); color:var(--gold);}
+td.hl{color:var(--gold); font-weight:700;}
+td.zero{color:rgba(207,216,201,.3);}
+tbody tr.inactive td{opacity:.4;}
+tbody tr.subrow td{color:var(--muted);}
+tbody tr.subrow td:nth-child(2){font-weight:500; color:var(--chalk-dim);}
+tbody tr.subrow{background:rgba(255,255,255,.015);}
+.subtag{
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:9.5px;
+  color:var(--clay-bright); background:rgba(130,173,232,.14);
+  border:1px solid rgba(130,173,232,.3); border-radius:20px; padding:1px 7px;
+  margin-left:5px; vertical-align:middle; letter-spacing:.02em;
+}
+
+/* year breakdown sub-table */
+.breakdown-row{display:none;}
+.breakdown-row.open{display:table-row;}
+.breakdown-row td{padding:0; background:var(--bg-deep);}
+.breakdown-inner{padding:10px 10px 14px 26px;}
+.breakdown-inner table{font-size:12px;}
+.breakdown-inner thead th{background:transparent; color:var(--muted); font-size:10px; padding:6px 8px;}
+.breakdown-inner tbody td{padding:6px 8px; border-bottom:1px solid rgba(43,70,54,.35);}
+.breakdown-inner tbody tr.total-row td{color:var(--gold); font-weight:700; border-top:1px solid var(--line);}
+.breakdown-inner tbody tr.total-row td:nth-child(2){color:var(--gold);}
+
+/* game cards */
+.games-list{display:flex; flex-direction:column; gap:10px;}
+.game-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.game-head{
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px;
+  cursor:pointer;
+}
+.game-head:hover{background:rgba(130,173,232,.05);}
+.game-date{
+  font-family:'Teko',sans-serif; font-size:26px; color:var(--gold);
+  min-width:64px; line-height:1;
+}
+.game-date small{display:block; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:.05em; margin-top:2px;}
+.game-info{flex:1; min-width:0;}
+.game-vs{font-size:15px; font-weight:700; color:var(--chalk); display:flex; align-items:center; flex-wrap:wrap; gap:8px;}
+.result-badge{
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  padding:2px 9px; border-radius:20px; letter-spacing:.03em;
+}
+.result-badge.W{background:rgba(111,174,111,.16); color:var(--win); border:1px solid rgba(111,174,111,.4);}
+.result-badge.L{background:rgba(193,83,62,.16); color:var(--loss); border:1px solid rgba(193,83,62,.4);}
+.result-badge.D{background:rgba(184,164,104,.16); color:var(--draw); border:1px solid rgba(184,164,104,.4);}
+.score{font-family:'JetBrains Mono',monospace; color:var(--chalk-dim); font-size:13px;}
+.game-vs .tag{
+  font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:.05em;
+  color:var(--clay-bright); background:rgba(79,116,171,.18);
+  border:1px solid rgba(79,116,171,.4); border-radius:20px; padding:2px 8px;
+  text-transform:uppercase;
+}
+.game-note{font-size:11px; color:var(--muted); margin-top:2px;}
+.game-chevron{
+  font-size:18px; color:var(--muted); transition:transform .2s ease;
+  flex-shrink:0;
+}
+.game-edit{
+  background:none; border:1px solid var(--line); color:var(--muted);
+  border-radius:6px; font-size:12px; padding:4px 8px; cursor:pointer; flex-shrink:0;
+}
+.game-edit:hover{border-color:var(--clay-bright); color:var(--chalk-dim);}
+.game-card.open .game-chevron{transform:rotate(180deg); color:var(--gold);}
+.game-body{
+  max-height:0; overflow:hidden; transition:max-height .3s ease;
+  border-top:1px solid transparent;
+}
+.game-card.open .game-body{border-top-color:var(--line);}
+.game-body-inner{padding:14px 16px 18px;}
+.game-body-inner h4{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gold); margin:14px 0 8px;
+}
+.game-body-inner h4:first-child{margin-top:0;}
+
+/* footer */
+footer{
+  border-top:1px solid var(--line);
+  padding:26px 0 50px;
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+}
+footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
+
+.scroll-hint{
+  font-size:10.5px; color:var(--muted); text-align:right; margin:-10px 2px 10px;
+  font-family:'JetBrains Mono',monospace;
+}
+@media (min-width:701px){.scroll-hint{display:none;}}
+.empty{padding:30px; text-align:center; color:var(--muted); font-size:13px;}
+
+/* ---------- ENTRY FORM ---------- */
+.share-note{
+  background:rgba(130,173,232,.08); border:1px solid rgba(130,173,232,.25);
+  border-radius:var(--radius); padding:12px 16px; font-size:12.5px; color:var(--chalk-dim);
+  line-height:1.6; margin-bottom:20px;
+}
+.share-note b{color:var(--chalk);}
+.edit-banner{
+  background:rgba(227,178,60,.1); border:1px solid rgba(227,178,60,.35);
+  border-radius:var(--radius); padding:11px 16px; font-size:12.5px; color:var(--gold);
+  margin-bottom:20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.edit-banner.hidden{display:none;}
+.edit-banner button{
+  background:none; border:1px solid var(--gold); color:var(--gold); border-radius:6px;
+  padding:4px 10px; font-size:11.5px; cursor:pointer; margin-left:auto;
+  font-family:'JetBrains Mono',monospace;
+}
+.edit-banner button:hover{background:rgba(227,178,60,.15);}
+.entry-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:20px; margin-bottom:20px;
+}
+.entry-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px 14px; margin-bottom:22px; align-items:end;
+}
+@media (max-width:760px){.entry-grid{grid-template-columns:repeat(2,1fr);}}
+.entry-grid label{
+  display:flex; flex-direction:column; gap:5px;
+  font-size:11px; letter-spacing:.03em; color:var(--muted);
+  font-family:'JetBrains Mono',monospace; text-transform:uppercase;
+}
+.entry-grid label.hidden{display:none;}
+.entry-grid input, .entry-grid select{
+  background:var(--bg-deep); border:1px solid var(--line); border-radius:6px;
+  padding:9px 10px; color:var(--chalk); font-family:'Inter',sans-serif; font-size:13.5px;
+  outline:none;
+}
+.entry-grid input:focus, .entry-grid select:focus{border-color:var(--clay-bright);}
+.result-preview{
+  grid-column:span 2; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted);
+  display:flex; align-items:center; padding-bottom:2px;
+}
+.result-preview .result-badge{margin-right:8px;}
+@media (max-width:760px){.result-preview{grid-column:span 2;}}
+
+.entry-table-scroll table{font-size:12px;}
+.entry-table-scroll thead th{text-align:center; padding:8px 5px;}
+.entry-table-scroll tbody td{padding:5px; text-align:center;}
+.entry-table-scroll input{
+  width:56px; background:var(--bg-deep); border:1px solid var(--line); border-radius:5px;
+  padding:6px 5px; color:var(--chalk); font-family:'JetBrains Mono',monospace; font-size:12px;
+  text-align:center; outline:none;
+}
+.entry-table-scroll input[data-f="이름"]{width:88px; font-family:'Inter',sans-serif; text-align:left;}
+.entry-table-scroll input[data-f="타순"]{width:56px;}
+.entry-table-scroll input:focus{border-color:var(--clay-bright);}
+.row-del{
+  background:none; border:none; color:var(--loss); cursor:pointer; font-size:15px; padding:2px 6px;
+}
+.btn-add-row{
+  background:none; border:1px dashed var(--line); color:var(--muted); border-radius:6px;
+  padding:8px 14px; font-size:12px; font-family:'JetBrains Mono',monospace; cursor:pointer;
+  margin:8px 0 22px;
+}
+.btn-add-row:hover{border-color:var(--clay-bright); color:var(--chalk-dim);}
+.entry-actions{display:flex; align-items:center; gap:14px; margin-top:8px;}
+.btn-save{
+  background:var(--gold); color:var(--bg-deep); border:none; border-radius:8px;
+  padding:12px 26px; font-family:'Teko',sans-serif; font-size:18px; font-weight:700;
+  letter-spacing:.03em; cursor:pointer;
+}
+.btn-save:hover{filter:brightness(1.08);}
+.btn-save:disabled{opacity:.5; cursor:not-allowed;}
+.save-status{font-size:12.5px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+.save-status.ok{color:var(--win);}
+.save-status.err{color:var(--loss);}
+.game-delete{
+  background:none; border:1px solid rgba(193,83,62,.35); color:var(--loss);
+  border-radius:6px; font-size:11px; font-family:'JetBrains Mono',monospace;
+  padding:5px 10px; cursor:pointer; margin-left:auto; flex-shrink:0;
+}
+.game-delete:hover{background:rgba(193,83,62,.14);}
+.loading-note{padding:60px 20px; text-align:center; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:13px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow"><span class="dot"></span>WOMEN'S AMATEUR BASEBALL &middot; SEOUL</div>
+    <h1>TEAM<span>ONE</span></h1>
+    <p class="hero-sub" id="heroSub"></p>
+    <div class="year-pills" id="yearPills"></div>
+    <div class="board" id="heroBoard"></div>
+  </div>
+</header>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab active" data-tab="batters">타자 기록</button>
+    <button class="tab" data-tab="pitchers">투수 기록</button>
+    <button class="tab" data-tab="games">경기별 기록</button>
+    <button class="tab" data-tab="entry">＋ 기록 입력</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="panel active" id="panel-batters">
+    <div class="section-head">
+      <h2 id="battersTitle">타자 부문</h2>
+      <div class="note">헤더 클릭 = 정렬 · 선수 클릭 = 연도별 기록</div>
+    </div>
+    <div class="leaders" id="leaders"></div>
+    <div class="scroll-hint">← 좌우로 스크롤 →</div>
+    <div class="table-scroll">
+      <table id="batterTable">
+        <thead><tr id="batterHead"></tr></thead>
+        <tbody id="batterBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-pitchers">
+    <div class="section-head">
+      <h2 id="pitchersTitle">투수 부문</h2>
+      <div class="note">등판 기록이 있는 선수만 표시돼요</div>
+    </div>
+    <div class="scroll-hint">← 좌우로 스크롤 →</div>
+    <div class="table-scroll">
+      <table id="pitcherTable">
+        <thead><tr id="pitcherHead"></tr></thead>
+        <tbody id="pitcherBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-games">
+    <div class="section-head">
+      <h2 id="gamesTitle">경기별 기록</h2>
+      <div class="note">카드 클릭 = 박스스코어</div>
+    </div>
+    <div class="games-list" id="gamesList"></div>
+  </section>
+
+  <section class="panel" id="panel-entry">
+    <div class="section-head">
+      <h2>새 경기 기록 입력</h2>
+      <div class="note">저장하면 모두에게 공유돼요</div>
+    </div>
+    <div class="share-note">⚠️ 이 탭에 입력한 기록은 이 페이지 링크로 들어오는 <b>모든 팀원에게 그대로 공유</b>돼요 (구글시트에 저장). 오타는 언제든 아래 목록에서 삭제할 수 있어요.</div>
+    <div class="share-note" id="setupWarning" style="display:none; border-color:rgba(193,83,62,.4); background:rgba(193,83,62,.08); color:#e6a89c;">
+      ⚠️ 아직 저장소(구글시트)가 연결되지 않았어요. <b>SETUP.md</b> 안내를 따라 Apps Script를 배포하고, index.html의 <code>APPS_SCRIPT_URL</code> 값을 채워주세요. 그 전까지는 입력해도 저장되지 않아요.
+    </div>
+    <div class="edit-banner hidden" id="editBanner">
+      ✎ <span id="editBannerText"></span>을(를) 수정하고 있어요.
+      <button type="button" id="cancelEditBtn">취소하고 새 경기 입력</button>
+    </div>
+
+    <div class="entry-card">
+      <div class="entry-grid">
+        <label>연도
+          <select id="f_year"></select>
+        </label>
+        <label class="hidden" id="f_year_new_wrap">새 연도
+          <input type="number" id="f_year_new" placeholder="2026" />
+        </label>
+        <label>월
+          <input type="number" id="f_month" min="1" max="12" placeholder="MM" />
+        </label>
+        <label>일
+          <input type="number" id="f_day" min="1" max="31" placeholder="DD" />
+        </label>
+        <label>대회/리그
+          <input type="text" id="f_league" list="leagueList" placeholder="예: 디비전리그" />
+          <datalist id="leagueList"></datalist>
+        </label>
+        <label>상대팀
+          <input type="text" id="f_opponent" placeholder="상대팀 이름" />
+        </label>
+        <label>우리 점수
+          <input type="number" id="f_us" min="0" />
+        </label>
+        <label>상대 점수
+          <input type="number" id="f_opp" min="0" />
+        </label>
+        <label>비고
+          <input type="text" id="f_note" placeholder="예: 추첨승 (선택)" />
+        </label>
+        <div class="result-preview" id="resultPreview"></div>
+      </div>
+
+      <h4>타자 기록</h4>
+      <div class="scroll-hint">← 좌우로 스크롤 →</div>
+      <div class="table-scroll entry-table-scroll">
+        <table id="battersEntryTable">
+          <thead><tr>
+            <th>타순</th><th>이름</th><th>타석</th><th>타수</th>
+            <th>1루타</th><th>2루타</th><th>3루타</th><th>홈런</th>
+            <th>타점</th><th>득점</th><th>도루</th><th>도루자</th>
+            <th>볼넷</th><th>사구</th><th>삼진</th><th>희타</th><th>희비</th><th>병살</th><th></th>
+          </tr></thead>
+          <tbody id="battersEntryBody"></tbody>
+        </table>
+      </div>
+      <button class="btn-add-row" id="addBatterRow">+ 타자 행 추가</button>
+
+      <h4>투수 기록</h4>
+      <div class="scroll-hint">← 좌우로 스크롤 →</div>
+      <div class="table-scroll entry-table-scroll">
+        <table id="pitchersEntryTable">
+          <thead><tr>
+            <th>이름</th><th>이닝</th><th>상대타자</th><th>타수</th><th>피안타</th><th>피홈런</th>
+            <th>볼넷</th><th>사구</th><th>탈삼진</th><th>실점</th><th>자책점</th><th>승</th><th>패</th><th></th>
+          </tr></thead>
+          <tbody id="pitchersEntryBody"></tbody>
+        </table>
+      </div>
+      <button class="btn-add-row" id="addPitcherRow">+ 투수 행 추가</button>
+
+      <div class="entry-actions">
+        <button class="btn-save" id="saveGameBtn">경기 기록 저장</button>
+        <span class="save-status" id="saveStatus"></span>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:36px;">
+      <h2 style="font-size:24px;">직접 입력한 경기 관리</h2>
+    </div>
+    <div class="games-list" id="userGamesList"></div>
+
+    <datalist id="rosterList"></datalist>
+  </section>
+
+</main>
+
+<footer>
+  <div class="ball">⚾</div>
+  <span id="footerText">TEAMONE SEASON RECORD</span>
+</footer>
+
+<script id="data-json" type="application/json">[{"sheet": "0322 연습경기", "date_code": "0322", "opponent": "골든폭스", "league": "연습경기", "batters": [{"이름": "강수지", "타순": 7, "게임": 1, "타석": 4, "타수": 3, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 3, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": 8, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예진", "타순": 9, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 4, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "류효은", "타순": "1대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 4, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 3, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 3, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 2, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": 6, "게임": 1, "타석": 4, "타수": 2, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 0, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "임상미", "타순": 3, "게임": 1, "타석": 4, "타수": 3, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": "4대타", "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 1, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": 10, "타수": 9, "이닝": 2, "피안타": 6, "피홈런": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "탈삼진": null, "폭투": 0, "보크": 0, "실점": 5, "자책점": 5}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": 11, "타수": 7, "이닝": 1.1, "피안타": 3, "피홈런": 0, "희타": 1, "희비": 0, "볼넷": 4, "사구": 0, "탈삼진": null, "폭투": 0, "보크": 0, "실점": 3, "자책점": 4}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": 10, "타수": 10, "이닝": 1.2, "피안타": 4, "피홈런": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "탈삼진": null, "폭투": 0, "보크": 0, "실점": 4, "자책점": 3}], "result": {"us": 10, "opp": 12, "outcome": "L"}, "id": "seed-2025-0322-0", "year": "2025", "source": "seed"}, {"sheet": "0419 연습경기", "date_code": "0419", "opponent": "히로인즈", "league": "연습경기", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": 6, "게임": 1, "타석": 4, "타수": 4, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 7, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 1, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 4, "타수": 4, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": 8, "게임": 1, "타석": 3, "타수": 3, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "신세희", "타순": 3, "게임": 1, "타석": 4, "타수": 4, "안타계": 1, "1루타": 0, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 3, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": 9, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 4, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 3, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 4, "타수": 3, "안타계": 3, "1루타": 1, "2루타": 2, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 2, "게임": 1, "타석": 4, "타수": 2, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": "7대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": 30, "타수": 27, "이닝": 5, "피안타": 11, "피홈런": 0, "희타": 0, "희비": 1, "볼넷": 3, "사구": 0, "탈삼진": null, "폭투": 0, "보크": 0, "실점": 8, "자책점": 6}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 11, "opp": 8, "outcome": "W"}, "id": "seed-2025-0419-1", "year": "2025", "source": "seed"}, {"sheet": "0426 디비전", "date_code": "0426", "opponent": "나인빅스", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 6, "게임": 1, "타석": 4, "타수": 4, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김시현", "타순": 8, "게임": 1, "타석": 4, "타수": 4, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 4, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 4, "타수": 4, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 4, "타수": 4, "안타계": 3, "1루타": 3, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": 7, "게임": 1, "타석": 4, "타수": 3, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "임상미", "타순": "3대주자", "게임": 1, "타석": 0, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 4, "타수": 4, "안타계": 3, "1루타": 2, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 2, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 9, "게임": 1, "타석": 3, "타수": 3, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 4, "타수": 3, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 10, "opp": 12, "outcome": "L"}, "id": "seed-2025-0426-2", "year": "2025", "source": "seed"}, {"sheet": "0511 여야페", "date_code": "0511", "opponent": "어셈블", "league": "여야페", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": "P, 9대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예지", "타순": 8, "게임": 1, "타석": 3, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 2, "삼진": 0, "병살": 0}, {"이름": "김예진", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": 7, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 1, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 6, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 1, "타점": 4, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": "8대주자", "게임": 1, "타석": 0, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 3, "타수": 3, "안타계": 3, "1루타": 3, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 3, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 11, "opp": 11, "outcome": "W", "note": "추첨승"}, "id": "seed-2025-0511-3", "year": "2025", "source": "seed"}, {"sheet": "0518 여야페", "date_code": "0518", "opponent": "스타트업", "league": "여야페", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": 7, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 3, "타수": 2, "안타계": 2, "1루타": 1, "2루타": 0, "3루타": 1, "홈런": 0, "타점": 2, "득점": 2, "도루": 2, "도루자": 1, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 1}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 6, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 1}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 9, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "차미래", "타순": 8, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 8, "opp": 9, "outcome": "L"}, "id": "seed-2025-0518-4", "year": "2025", "source": "seed"}, {"sheet": "0525 디비전", "date_code": "0525", "opponent": "영구(Y9)", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": 7, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김예지", "타순": 8, "게임": 1, "타석": 3, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 2, "삼진": 0, "병살": 0}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "신세희", "타순": 3, "게임": 1, "타석": 3, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 2, "게임": 1, "타석": 3, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 2, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": "P,6", "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "정윤아", "타순": 1, "게임": 1, "타석": 3, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 3, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "차미래", "타순": "9대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "한예람", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 13, "opp": 12, "outcome": "W"}, "id": "seed-2025-0525-5", "year": "2025", "source": "seed"}, {"sheet": "0601 디비전", "date_code": "0601", "opponent": "원야구단", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": 6, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 7, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 2, "게임": 1, "타석": 3, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 5, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": 8, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 5, "게임": 1, "타석": 3, "타수": 2, "안타계": 2, "1루타": 1, "2루타": 0, "3루타": 1, "홈런": 0, "타점": 2, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "한예람", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 7, "opp": 14, "outcome": "L"}, "id": "seed-2025-0601-6", "year": "2025", "source": "seed"}, {"sheet": "0607 디비전", "date_code": "0607", "opponent": "레드폭스", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 6, "게임": 1, "타석": 3, "타수": 3, "안타계": 2, "1루타": 1, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 3, "득점": 2, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": 8, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 2, "게임": 1, "타석": 3, "타수": 3, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "이소민", "타순": 7, "게임": 1, "타석": 2, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "임상미", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 1, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 8, "opp": 16, "outcome": "L"}, "id": "seed-2025-0607-7", "year": "2025", "source": "seed"}, {"sheet": "0622 익산시장기 8강", "date_code": "0622", "opponent": "익산 어메이징", "league": "전국대회 · 익산시장기 8강", "batters": [{"이름": "강수지", "타순": 6, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 0, "3루타": 1, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 8, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": "5대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 3, "타수": 3, "안타계": 2, "1루타": 1, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 1, "삼진": 1, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 5, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 1, "도루자": 0, "희타": 1, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "정윤아", "타순": 7, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 10, "opp": 0, "outcome": "W"}, "id": "seed-2025-0622-8", "year": "2025", "source": "seed"}, {"sheet": "0629 익산시장기 4강", "date_code": "0629", "opponent": "에이시즈", "league": "전국대회 · 익산시장기 준결승", "batters": [{"이름": "강수지", "타순": 5, "게임": 1, "타석": 3, "타수": 2, "안타계": 2, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 2, "타점": 4, "득점": 3, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "김시현", "타순": "P, 8대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예지", "타순": 9, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 1, "삼진": 1, "병살": 0}, {"이름": "김예진", "타순": "7대타", "게임": 1, "타석": 1, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 8, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 4, "타수": 3, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 5, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 4, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 3, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 1, "삼진": 1, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 6, "게임": 1, "타석": 3, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 4, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 7, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 4, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 1, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 18, "opp": 8, "outcome": "W"}, "id": "seed-2025-0629-9", "year": "2025", "source": "seed"}, {"sheet": "0629 익산시장기 결승", "date_code": "0629", "opponent": "태그업", "league": "전국대회 · 익산시장기 결승", "batters": [{"이름": "강수지", "타순": 5, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": "3대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김예진", "타순": "9대타", "게임": 1, "타석": 1, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 8, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 2, "삼진": 1, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 3, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 6, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 7, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 11, "opp": 13, "outcome": "L"}, "id": "seed-2025-0629-10", "year": "2025", "source": "seed"}, {"sheet": "0720 울진 16강", "date_code": "0720", "opponent": "퀄리티스타트", "league": "전국대회 · 울진 16강", "batters": [{"이름": "강수지", "타순": 6, "게임": 1, "타석": 3, "타수": 2, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 8, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 3, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 3, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 7, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "최수정", "타순": 5, "게임": 1, "타석": 3, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 2, "opp": 9, "outcome": "L"}, "id": "seed-2025-0720-11", "year": "2025", "source": "seed"}, {"sheet": "0803 디비전", "date_code": "0803", "opponent": "레드폭스", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 2, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 1, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김시현", "타순": "대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 8, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 6, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "정윤아", "타순": 7, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 3, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "최수정", "타순": 5, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 1, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 1, "opp": 11, "outcome": "L"}, "id": "seed-2025-0803-12", "year": "2025", "source": "seed"}, {"sheet": "0809 디비전", "date_code": "0809", "opponent": "블랙펄스", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 2, "1루타": 1, "2루타": 0, "3루타": 1, "홈런": 0, "타점": 1, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김시현", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 9, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 3, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": 6, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "임상미", "타순": "P,8", "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 0, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 3, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "최수정", "타순": 7, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 7, "opp": 16, "outcome": "L"}, "id": "seed-2025-0809-13", "year": "2025", "source": "seed"}, {"sheet": "0816 디비전", "date_code": "0816", "opponent": "영구Y9", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 2, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 9, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 6, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "이소민", "타순": 7, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "임상미", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 2, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 3, "안타계": 3, "1루타": 2, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 1, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 8, "게임": 1, "타석": 3, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": "7대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "최수정", "타순": 5, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 10, "opp": 1, "outcome": "W"}, "id": "seed-2025-0816-14", "year": "2025", "source": "seed"}, {"sheet": "0906 디비전", "date_code": "0906", "opponent": "드래곤볼", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 2, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": 8, "게임": 1, "타석": 1, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 1, "삼진": 0, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 7, "게임": 1, "타석": 2, "타수": 2, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "신세희", "타순": 1, "게임": 1, "타석": 2, "타수": 2, "안타계": 2, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 1, "타점": 1, "득점": 2, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이소민", "타순": "8대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "임상미", "타순": 3, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "최수정", "타순": 6, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 0, "3루타": 1, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이재희", "타순": 5, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 1, "타점": 1, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "임유진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 6, "opp": 15, "outcome": "L"}, "id": "seed-2025-0906-15", "year": "2025", "source": "seed"}, {"sheet": "0914 디비전", "date_code": "0914", "opponent": "원야구단", "league": "디비전리그", "batters": [{"이름": "강수지", "타순": 3, "게임": 1, "타석": 3, "타수": 2, "안타계": 2, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 1, "타점": 1, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김시현", "타순": "P", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": "5대타", "게임": 1, "타석": 1, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 1, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 7, "게임": 1, "타석": 3, "타수": 3, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 1, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "신세희", "타순": 1, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": "2대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "이경민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": "8, P", "게임": 1, "타석": 2, "타수": 1, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 3, "타수": 3, "안타계": 2, "1루타": 0, "2루타": 2, "3루타": 0, "홈런": 0, "타점": 2, "득점": 2, "도루": 3, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 2, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 1, "득점": 1, "도루": 2, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "최수정", "타순": 6, "게임": 1, "타석": 3, "타수": 3, "안타계": 1, "1루타": 0, "2루타": 0, "3루타": 1, "홈런": 0, "타점": 1, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "이재희", "타순": 5, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "임유진", "타순": "대수비", "게임": 1, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 9, "opp": 6, "outcome": "W"}, "id": "seed-2025-0914-16", "year": "2025", "source": "seed"}, {"sheet": "0928 협회장기", "date_code": "0928", "opponent": "리얼디아몬즈", "league": "전국대회 · 프로야구협회장기", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": "6, P", "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "김예지", "타순": 7, "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "김예진", "타순": 8, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 5, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "류효은", "타순": 9, "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 2, "타수": 0, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 1, "희타": 0, "희비": 0, "볼넷": 2, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 3, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 1, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "정윤아", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "최수정", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이재희", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임유진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "유희정", "타순": "7 대타", "게임": 1, "타석": 1, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 0, "opp": 11, "outcome": "L"}, "id": "seed-2025-0928-17", "year": "2025", "source": "seed"}, {"sheet": "1012 연습경기", "date_code": "1012", "opponent": "어셈블", "league": "연습경기", "batters": [{"이름": "강수지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김시현", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예지", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김예진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김지인", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "김혜린", "타순": 7, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 1, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "류효은", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "신세희", "타순": 2, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "오현영", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "이경민", "타순": 1, "게임": 1, "타석": 2, "타수": 1, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 1, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "이소민", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "임상미", "타순": 3, "게임": 1, "타석": 2, "타수": 2, "안타계": 2, "1루타": 2, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "전난주", "타순": 4, "게임": 1, "타석": 2, "타수": 2, "안타계": 1, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 1, "타점": 2, "득점": 1, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "정윤아", "타순": 8, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 0, "병살": 0}, {"이름": "차미래", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "한예람", "타순": 10, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "최수정", "타순": 6, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}, {"이름": "이재희", "타순": 5, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 1, "병살": 0}, {"이름": "임유진", "타순": null, "게임": null, "타석": null, "타수": null, "안타계": null, "1루타": null, "2루타": null, "3루타": null, "홈런": null, "타점": null, "득점": null, "도루": null, "도루자": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "삼진": null, "병살": null}, {"이름": "유희정", "타순": 9, "게임": 1, "타석": 2, "타수": 2, "안타계": 0, "1루타": 0, "2루타": 0, "3루타": 0, "홈런": 0, "타점": 0, "득점": 0, "도루": 0, "도루자": 0, "희타": 0, "희비": 0, "볼넷": 0, "사구": 0, "삼진": 2, "병살": 0}], "pitchers": [{"이름": "김시현", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "임상미", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}, {"이름": "신세희", "게임": null, "승": null, "무": null, "패": null, "타자": null, "타수": null, "이닝": null, "피안타": null, "피홈런": null, "희타": null, "희비": null, "볼넷": null, "사구": null, "탈삼진": null, "폭투": null, "보크": null, "실점": null, "자책점": null}], "result": {"us": 2, "opp": 5, "outcome": "L"}, "id": "seed-2025-1012-18", "year": "2025", "source": "seed"}]</script>
+<script>
+const SEED_GAMES = JSON.parse(document.getElementById('data-json').textContent);
+const DATA = {years:{}};
+const CAREER = '__career__';
+let yearKeys = [];
+let ALL_GAMES = [];
+let currentYear = null;
+let openPlayer = null; // name of expanded player row in batter/pitcher table
+let editingGameId = null; // set while the entry form is editing an existing game
+
+/* ---------- format helpers ---------- */
+function fmtAvg(v){
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  if (v === 0) return '.000';
+  const s = v.toFixed(3);
+  return s.startsWith('0') ? s.slice(1) : (s.startsWith('-0') ? '-'+s.slice(2) : s);
+}
+function fmtOps(v){ if (v===null||v===undefined||isNaN(v)) return '-'; return v.toFixed(3); }
+function fmtNum(v){ if (v===null||v===undefined||isNaN(v)) return '-'; if (Number.isInteger(v)) return String(v); return v.toFixed(2); }
+function fmtInt(v){ if (v===null||v===undefined) return '-'; return String(v); }
+
+/* ---------- raw field lists ---------- */
+const BATTER_FIELDS = ['타석','타수','안타계','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','희타','희비','볼넷','사구','삼진','병살'];
+const PITCHER_FIELDS = ['타자','타수','이닝','피안타','피홈런','희타','희비','볼넷','사구','탈삼진','폭투','보크','실점','자책점'];
+
+function emptyAcc(fields){ const a={}; fields.forEach(f=>a[f]=0); return a; }
+
+function computeBatterRates(acc){
+  const ab = acc['타수']||0;
+  const tb = (acc['1루타']||0)*1 + (acc['2루타']||0)*2 + (acc['3루타']||0)*3 + (acc['홈런']||0)*4;
+  const onbaseNum = (acc['안타계']||0) + (acc['볼넷']||0) + (acc['사구']||0);
+  const onbaseDen = ab + (acc['볼넷']||0) + (acc['사구']||0) + (acc['희비']||0) + (acc['희타']||0);
+  const avg = ab ? (acc['안타계']||0)/ab : 0;
+  const slg = ab ? tb/ab : 0;
+  const obp = onbaseDen ? onbaseNum/onbaseDen : 0;
+  return {...acc, 타율:avg, 장타율:slg, 출루율:obp, OPS: obp+slg};
+}
+function computePitcherRates(acc){
+  const ip = acc['이닝']||0;
+  const era = ip ? (acc['자책점']||0)*9/ip : 0;
+  const whip = ip ? ((acc['볼넷']||0)+(acc['피안타']||0))/ip : 0;
+  const avg = (acc['타수']||0) ? (acc['피안타']||0)/(acc['타수']||0) : 0;
+  return {...acc, ERA: era, WHIP: whip, 피안타율: avg};
+}
+
+/* ---------- aggregation over a set of games ---------- */
+function aggregateBattersByPlayer(games){
+  const map = {};
+  for (const g of games){
+    for (const b of g.batters){
+      if (!b['게임']) continue;
+      if (!map[b['이름']]) map[b['이름']] = {이름:b['이름'], ...emptyAcc(BATTER_FIELDS), 게임:0};
+      const acc = map[b['이름']];
+      BATTER_FIELDS.forEach(f=>acc[f]+= (b[f]||0));
+      acc['게임'] += 1;
+    }
+  }
+  return Object.values(map).map(computeBatterRates);
+}
+function aggregateTeamBatting(games){
+  const acc = {...emptyAcc(BATTER_FIELDS), 게임:games.length};
+  for (const g of games){
+    for (const b of g.batters){
+      if (!b['게임']) continue;
+      BATTER_FIELDS.forEach(f=>acc[f]+=(b[f]||0));
+    }
+  }
+  return computeBatterRates(acc);
+}
+function aggregatePitchersByPlayer(games){
+  const map = {};
+  for (const g of games){
+    for (const p of g.pitchers){
+      if (!map[p['이름']]) map[p['이름']] = {이름:p['이름'], ...emptyAcc(PITCHER_FIELDS), 승:0, 패:0, 등판:0};
+      const acc = map[p['이름']];
+      PITCHER_FIELDS.forEach(f=>acc[f]+=(p[f]||0));
+      acc['승'] += (p['승']||0); acc['패'] += (p['패']||0);
+      acc['등판'] += 1;
+    }
+  }
+  return Object.values(map).map(computePitcherRates);
+}
+function recordFromGames(games){
+  const r = {W:0,L:0,D:0};
+  games.forEach(g=>{ const o=g.result && g.result.outcome; if (o) r[o]++; });
+  return r;
+}
+function recordLabel(r){ return r.D>0 ? `${r.W}승 ${r.L}패 ${r.D}무` : `${r.W}승 ${r.L}패`; }
+
+/* ---------- scope resolution ---------- */
+function rebuildYearsMap(){
+  DATA.years = {};
+  ALL_GAMES.forEach(g=>{
+    if (!DATA.years[g.year]) DATA.years[g.year] = {games:[]};
+    DATA.years[g.year].games.push(g);
+  });
+  yearKeys = Object.keys(DATA.years).sort();
+  if (!currentYear || !yearKeys.includes(currentYear)){
+    currentYear = yearKeys.length ? yearKeys[yearKeys.length-1] : CAREER;
+  }
+}
+function gamesForScope(scope){
+  if (scope === CAREER) return yearKeys.flatMap(y=>DATA.years[y].games);
+  return (DATA.years[scope] && DATA.years[scope].games) || [];
+}
+
+/* ---------- YEAR PILLS ---------- */
+function renderYearPills(){
+  const pills = [...yearKeys.map(y=>({k:y,label:y+' 시즌'})), {k:CAREER,label:'통산'}];
+  document.getElementById('yearPills').innerHTML = pills.map(p=>
+    `<button class="year-pill ${p.k===currentYear?'active':''}" data-y="${p.k}">${p.label}</button>`
+  ).join('');
+  document.querySelectorAll('.year-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentYear = btn.dataset.y;
+      openPlayer = null;
+      renderAll();
+    });
+  });
+}
+
+/* ---------- HERO ---------- */
+document.getElementById('heroSub').innerHTML =
+  `여자야구단 <b>팀원</b>(TEAM ONE)의 통산 기록실.`;
+
+function renderHero(){
+  const games = gamesForScope(currentYear);
+  const team = aggregateTeamBatting(games);
+  const rec = recordFromGames(games);
+  const tiles = [
+    {lbl:'경기', html: games.length},
+    {lbl:'전적', html: `<span class="w">${rec.W}</span><span class="sep">·</span><span class="l">${rec.L}</span>${rec.D?`<span class="sep">·</span><span class="d">${rec.D}</span>`:''}`, record:true},
+    {lbl:'팀 타율', html: fmtAvg(team['타율'])},
+    {lbl:'팀 OPS', html: fmtOps(team['OPS'])},
+    {lbl:'홈런', html: team['홈런']},
+    {lbl:'도루', html: team['도루']},
+  ];
+  document.getElementById('heroBoard').innerHTML = tiles.map(t=>
+    `<div class="tile ${t.record?'record':''}"><div class="num">${t.html}</div><div class="lbl">${t.lbl}</div></div>`
+  ).join('');
+  document.getElementById('footerText').textContent =
+    `TEAMONE ${currentYear===CAREER?'통산':currentYear+' 시즌'} RECORD · 총 ${games.length}경기 · ${recordLabel(rec)}`;
+}
+
+/* ---------- TABS ---------- */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- BATTERS ---------- */
+const batterCols = [
+  {k:'이름', label:'선수', fmt:v=>v},
+  {k:'타율', label:'타율', fmt:fmtAvg, num:true},
+  {k:'게임', label:'경기', fmt:fmtInt, num:true},
+  {k:'타석', label:'타석', fmt:fmtInt, num:true},
+  {k:'타수', label:'타수', fmt:fmtInt, num:true},
+  {k:'안타계', label:'안타', fmt:fmtInt, num:true},
+  {k:'2루타', label:'2루타', fmt:fmtInt, num:true},
+  {k:'3루타', label:'3루타', fmt:fmtInt, num:true},
+  {k:'홈런', label:'홈런', fmt:fmtInt, num:true},
+  {k:'타점', label:'타점', fmt:fmtInt, num:true},
+  {k:'득점', label:'득점', fmt:fmtInt, num:true},
+  {k:'도루', label:'도루', fmt:fmtInt, num:true},
+  {k:'볼넷', label:'볼넷', fmt:fmtInt, num:true},
+  {k:'삼진', label:'삼진', fmt:fmtInt, num:true},
+  {k:'장타율', label:'장타율', fmt:fmtAvg, num:true},
+  {k:'출루율', label:'출루율', fmt:fmtAvg, num:true},
+  {k:'OPS', label:'OPS', fmt:fmtOps, num:true},
+];
+let batterSort = {col:'타율', dir:-1};
+
+function renderBatterHead(){
+  const head = document.getElementById('batterHead');
+  head.innerHTML = batterCols.map(c=>{
+    const sorted = c.k === batterSort.col;
+    const arrow = sorted ? (batterSort.dir===1?'▲':'▼') : '';
+    return `<th data-k="${c.k}" class="${sorted?'sorted':''}">${c.label}<span class="arrow">${arrow}</span></th>`;
+  }).join('');
+  head.querySelectorAll('th').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const k = th.dataset.k;
+      if (batterSort.col === k) batterSort.dir *= -1;
+      else { batterSort.col = k; batterSort.dir = (k==='이름')?1:-1; }
+      renderBatterHead(); renderBatterBody();
+    });
+  });
+}
+
+function yearBreakdownRows(name, fields, aggFn, rateFn){
+  const rows = [];
+  yearKeys.forEach(y=>{
+    const rows_y = aggFn(DATA.years[y].games).filter(r=>r['이름']===name);
+    if (rows_y.length) rows.push({year:y, ...rows_y[0]});
+  });
+  return rows;
+}
+
+function renderBatterBreakdown(name){
+  const rows = yearBreakdownRows(name, BATTER_FIELDS, aggregateBattersByPlayer);
+  const totalAcc = {...emptyAcc(BATTER_FIELDS), 게임:0};
+  rows.forEach(r=>{ BATTER_FIELDS.forEach(f=>totalAcc[f]+=r[f]); totalAcc['게임']+=r['게임']; });
+  const total = computeBatterRates(totalAcc);
+  const cols = batterCols.filter(c=>c.k!=='이름');
+  const rowHtml = (label, r, isTotal) => `<tr class="${isTotal?'total-row':''}"><td>${label}</td>` +
+    cols.map(c=>`<td>${c.fmt(r[c.k])}</td>`).join('') + `</tr>`;
+  return `<div class="breakdown-inner"><div class="table-scroll"><table>
+    <thead><tr><th>연도</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${rows.map(r=>rowHtml(r.year+'년', r, false)).join('')}
+      ${rows.length>1 ? rowHtml('통산', total, true) : ''}
+    </tbody>
+  </table></div></div>`;
+}
+
+function renderBatterBody(){
+  const games = gamesForScope(currentYear);
+  const rows0 = aggregateBattersByPlayer(games);
+  const rows = [...rows0].sort((a,b)=>{
+    let av = a[batterSort.col], bv = b[batterSort.col];
+    if (typeof av === 'string' || typeof bv === 'string') {
+      av = av || ''; bv = bv || '';
+      return batterSort.dir * String(av).localeCompare(String(bv), 'ko');
+    }
+    av = av ?? -Infinity; bv = bv ?? -Infinity;
+    return batterSort.dir * (av - bv);
+  });
+  const body = document.getElementById('batterBody');
+  body.innerHTML = rows.map(r=>{
+    const isOpen = openPlayer === r['이름'];
+    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + batterCols.map(c=>{
+      const v = r[c.k];
+      const cls = (c.k===batterSort.col) ? 'hl' : ((v===0||v===null)?'zero':'');
+      return `<td class="${cls}">${c.fmt(v)}</td>`;
+    }).join('') + `</tr>`;
+    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${batterCols.length}">${isOpen?renderBatterBreakdown(r['이름']):''}</td></tr>`;
+    return mainRow + breakdownRow;
+  }).join('');
+  body.querySelectorAll('tr.playerrow').forEach(tr=>{
+    tr.addEventListener('click', ()=>{
+      const name = tr.dataset.name;
+      openPlayer = (openPlayer === name) ? null : name;
+      renderBatterBody();
+    });
+  });
+}
+
+const leaderDefs = [
+  {label:'타율왕', key:'타율', fmt:fmtAvg},
+  {label:'홈런왕', key:'홈런', fmt:fmtInt},
+  {label:'타점왕', key:'타점', fmt:fmtInt},
+  {label:'도루왕', key:'도루', fmt:fmtInt},
+  {label:'OPS 1위', key:'OPS', fmt:fmtOps},
+];
+function renderLeaders(){
+  const games = gamesForScope(currentYear);
+  const active = aggregateBattersByPlayer(games).filter(b=>b['게임']);
+  if (!active.length){ document.getElementById('leaders').innerHTML=''; return; }
+  document.getElementById('leaders').innerHTML = leaderDefs.map(d=>{
+    const top = active.reduce((best,cur)=> (cur[d.key]||0) > (best[d.key]||0) ? cur : best, active[0]);
+    return `<div class="leader-card"><div class="cat">${d.label}</div><div class="name">${top['이름']}</div><div class="val">${d.fmt(top[d.key])}</div></div>`;
+  }).join('');
+}
+
+/* ---------- PITCHERS ---------- */
+const pitcherCols = [
+  {k:'이름', label:'선수', fmt:v=>v},
+  {k:'ERA', label:'방어율', fmt:fmtNum, num:true},
+  {k:'이닝', label:'이닝', fmt:fmtNum, num:true},
+  {k:'승', label:'승', fmt:fmtInt},
+  {k:'패', label:'패', fmt:fmtInt},
+  {k:'타자', label:'상대타자', fmt:fmtInt},
+  {k:'피안타', label:'피안타', fmt:fmtInt},
+  {k:'피홈런', label:'피홈런', fmt:fmtInt},
+  {k:'볼넷', label:'볼넷', fmt:fmtInt},
+  {k:'탈삼진', label:'탈삼진', fmt:fmtInt},
+  {k:'실점', label:'실점', fmt:fmtInt},
+  {k:'자책점', label:'자책점', fmt:fmtInt},
+  {k:'WHIP', label:'WHIP', fmt:fmtNum},
+  {k:'피안타율', label:'피안타율', fmt:fmtAvg},
+];
+function renderPitcherBreakdown(name){
+  const rows = [];
+  yearKeys.forEach(y=>{
+    const rows_y = aggregatePitchersByPlayer(DATA.years[y].games).filter(r=>r['이름']===name);
+    if (rows_y.length) rows.push({year:y, ...rows_y[0]});
+  });
+  const totalAcc = {...emptyAcc(PITCHER_FIELDS), 승:0, 패:0};
+  rows.forEach(r=>{ PITCHER_FIELDS.forEach(f=>totalAcc[f]+=r[f]); totalAcc['승']+=r['승']; totalAcc['패']+=r['패']; });
+  const total = computePitcherRates(totalAcc);
+  const cols = pitcherCols.filter(c=>c.k!=='이름');
+  const rowHtml = (label, r, isTotal) => `<tr class="${isTotal?'total-row':''}"><td>${label}</td>` +
+    cols.map(c=>`<td>${c.fmt(r[c.k])}</td>`).join('') + `</tr>`;
+  return `<div class="breakdown-inner"><div class="table-scroll"><table>
+    <thead><tr><th>연도</th>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${rows.map(r=>rowHtml(r.year+'년', r, false)).join('')}
+      ${rows.length>1 ? rowHtml('통산', total, true) : ''}
+    </tbody>
+  </table></div></div>`;
+}
+let openPitcher = null;
+function renderPitcherBody(){
+  const games = gamesForScope(currentYear);
+  const rows = aggregatePitchersByPlayer(games);
+  const head = document.getElementById('pitcherHead');
+  head.innerHTML = pitcherCols.map(c=>`<th>${c.label}</th>`).join('');
+  const body = document.getElementById('pitcherBody');
+  if (!rows.length){
+    document.getElementById('panel-pitchers').querySelector('.table-scroll').style.display='none';
+    document.querySelector('#panel-pitchers .empty')?.remove();
+    document.getElementById('panel-pitchers').insertAdjacentHTML('beforeend','<div class="empty">등판 기록이 없습니다.</div>');
+    return;
+  }
+  document.getElementById('panel-pitchers').querySelector('.table-scroll').style.display='';
+  document.querySelector('#panel-pitchers .empty')?.remove();
+  body.innerHTML = rows.map(r=>{
+    const isOpen = openPitcher === r['이름'];
+    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + pitcherCols.map(c=>{
+      const v = r[c.k];
+      return `<td class="${v===0||v===null?'zero':''}">${c.fmt(v)}</td>`;
+    }).join('') + `</tr>`;
+    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${pitcherCols.length}">${isOpen?renderPitcherBreakdown(r['이름']):''}</td></tr>`;
+    return mainRow + breakdownRow;
+  }).join('');
+  body.querySelectorAll('tr.playerrow').forEach(tr=>{
+    tr.addEventListener('click', ()=>{
+      const name = tr.dataset.name;
+      openPitcher = (openPitcher === name) ? null : name;
+      renderPitcherBody();
+    });
+  });
+}
+
+/* ---------- GAMES ---------- */
+function fmtDate(code){ return {m: code.slice(0,2), d: code.slice(2,4)}; }
+const gameBatterCols = [
+  {k:'타순', label:'순'}, {k:'이름', label:'선수'}, {k:'타석', label:'타석'}, {k:'타수', label:'타수'},
+  {k:'안타계', label:'안타'}, {k:'2루타', label:'2루타'}, {k:'3루타', label:'3루타'}, {k:'홈런', label:'홈런'},
+  {k:'타점', label:'타점'}, {k:'득점', label:'득점'}, {k:'도루', label:'도루'}, {k:'볼넷', label:'볼넷'}, {k:'삼진', label:'삼진'},
+];
+const gamePitcherCols = [
+  {k:'이름', label:'선수'}, {k:'이닝', label:'이닝'}, {k:'타자', label:'상대타자'}, {k:'피안타', label:'피안타'},
+  {k:'볼넷', label:'볼넷'}, {k:'탈삼진', label:'탈삼진'}, {k:'실점', label:'실점'}, {k:'자책점', label:'자책점'},
+];
+
+/* parse the free-form '타순' field: plain number = starting slot,
+   "N대타"/"N대주자"/"N대수비" = substitute for slot N, "P" = pitcher w/ no plate appearance */
+function parseSlot(raw){
+  if (raw === null || raw === undefined) return {num:null, tag:null, hasP:false, pureP:false};
+  const s = String(raw).trim();
+  if (s === 'P') return {num:null, tag:null, hasP:true, pureP:true};
+  const tagM = s.match(/대주자|대타|대수비/);
+  const numM = s.match(/\d+/);
+  const hasP = /P/.test(s);
+  return { num: numM ? parseInt(numM[0],10) : null, tag: tagM ? tagM[0] : null, hasP, pureP:false };
+}
+function battingSortKey(b){
+  const {num, tag, pureP} = parseSlot(b['타순']);
+  const base = (num!=null) ? num : (pureP ? 101 : 100);
+  return base*10 + (tag ? 1 : 0);
+}
+
+function gameBoxTable(cols, rows){
+  if (!rows.length) return '<div class="empty" style="padding:14px;">기록 없음</div>';
+  return `<div class="table-scroll"><table>
+    <thead><tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>'<tr>'+cols.map(c=>{
+      const v = r[c.k];
+      const disp = (c.k==='이름'||c.k==='타순') ? (v??'-') : fmtInt(v);
+      return `<td class="${v===0?'zero':''}">${disp}</td>`;
+    }).join('')+'</tr>').join('')}</tbody>
+  </table></div>`;
+}
+
+function batterBoxTable(rows){
+  if (!rows.length) return '<div class="empty" style="padding:14px;">기록 없음</div>';
+  const restCols = gameBatterCols.slice(2);
+  const body = rows.map(r=>{
+    const {num, tag, hasP, pureP} = parseSlot(r['타순']);
+    const isSub = !!tag;
+    const slotDisp = isSub ? '' : (pureP ? 'P' : (num!=null ? num : '-'));
+    const badge = tag ? `<span class="subtag">${tag}</span>` : (pureP ? `<span class="subtag">P</span>` : (hasP ? `<span class="subtag">P</span>` : ''));
+    const rest = restCols.map(c=>{
+      const v = r[c.k];
+      return `<td class="${v===0?'zero':''}">${fmtInt(v)}</td>`;
+    }).join('');
+    return `<tr class="${isSub?'subrow':''}"><td>${slotDisp}</td><td>${r['이름']} ${badge}</td>${rest}</tr>`;
+  }).join('');
+  return `<div class="table-scroll"><table>
+    <thead><tr>${gameBatterCols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+    <tbody>${body}</tbody>
+  </table></div>`;
+}
+
+function renderGames(){
+  const games = gamesForScope(currentYear);
+  const gamesList = document.getElementById('gamesList');
+  gamesList.innerHTML = games.map((g, idx)=>{
+    const {m,d} = fmtDate(g.date_code);
+    const activeBatters = g.batters.filter(b=>b['게임']).sort((a,b)=> battingSortKey(a) - battingSortKey(b));
+    const res = g.result || {};
+    const badge = res.outcome ? `<span class="result-badge ${res.outcome}">${res.outcome==='W'?'승':res.outcome==='L'?'패':'무'}</span>` : '';
+    const score = (res.us!=null && res.opp!=null) ? `<span class="score">${res.us} : ${res.opp}</span>` : '';
+    const yearTag = currentYear===CAREER ? `<span class="tag">${g.year||''}</span>` : '';
+    return `<div class="game-card" id="game-${idx}">
+      <div class="game-head" data-idx="${idx}">
+        <div class="game-date">${m}/${d}<small>${g.league||''}</small></div>
+        <div class="game-info">
+          <div class="game-vs">vs ${g.opponent} ${badge} ${score} ${yearTag}</div>
+          ${res.note?`<div class="game-note">${res.note}</div>`:''}
+        </div>
+        <button class="game-edit" data-id="${g.id}" title="수정">✎</button>
+        <div class="game-chevron">⌄</div>
+      </div>
+      <div class="game-body">
+        <div class="game-body-inner">
+          <h4>타자 기록</h4>
+          ${batterBoxTable(activeBatters)}
+          <h4>투수 기록</h4>
+          ${gameBoxTable(gamePitcherCols, g.pitchers)}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  gamesList.querySelectorAll('.game-head').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      const card = head.closest('.game-card');
+      const body = card.querySelector('.game-body');
+      const isOpen = card.classList.contains('open');
+      if (isOpen){ body.style.maxHeight = null; card.classList.remove('open'); }
+      else { card.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
+    });
+  });
+  gamesList.querySelectorAll('.game-edit').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      startEditGame(btn.dataset.id);
+    });
+  });
+}
+
+/* ---------- TITLES ---------- */
+function renderTitles(){
+  const label = currentYear===CAREER ? '통산' : currentYear+' 시즌';
+  document.getElementById('battersTitle').textContent = label+' 타자 부문';
+  document.getElementById('pitchersTitle').textContent = label+' 투수 부문';
+  document.getElementById('gamesTitle').textContent = (currentYear===CAREER?'전체':label)+' 경기별 기록';
+}
+
+/* ---------- MASTER RENDER ---------- */
+function renderAll(){
+  renderYearPills();
+  renderHero();
+  renderTitles();
+  renderBatterHead();
+  renderBatterBody();
+  renderLeaders();
+  renderPitcherBody();
+  renderGames();
+  renderEntryStatics();
+  renderUserGamesList();
+}
+
+/* =====================================================================
+   PERSISTENT SHARED STORAGE via a Google Apps Script Web App backed by
+   a Google Sheet. Deploy the provided Code.gs as a Web App (Anyone can
+   access), then paste the /exec URL below. See SETUP.md for steps.
+===================================================================== */
+const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const hasStorage = !!APPS_SCRIPT_URL && !APPS_SCRIPT_URL.startsWith('PASTE_');
+
+async function loadStoredGames(){
+  if (!hasStorage) return [];
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { method:'GET' });
+    const data = await res.json();
+    return data.games || [];
+  } catch(e){ console.error('loadStoredGames failed', e); return []; }
+}
+async function persistNewGame(game){
+  if (!hasStorage) throw new Error('아직 저장소가 연결되지 않았어요. SETUP.md를 참고해 구글시트 연동을 완료해주세요.');
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action:'save', game }),
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
+}
+async function deleteStoredGame(id){
+  if (!hasStorage) return;
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'delete', id }),
+    });
+  } catch(e){ console.error('deleteStoredGame failed', e); }
+}
+
+/* =====================================================================
+   ENTRY FORM
+===================================================================== */
+function allKnownNames(){
+  const s = new Set();
+  ALL_GAMES.forEach(g=>{
+    g.batters.forEach(b=>{ if (b['이름']) s.add(b['이름']); });
+    g.pitchers.forEach(p=>{ if (p['이름']) s.add(p['이름']); });
+  });
+  return [...s].sort((a,b)=>a.localeCompare(b,'ko'));
+}
+function allKnownLeagues(){
+  const s = new Set();
+  ALL_GAMES.forEach(g=>{ if (g.league) s.add(g.league); });
+  return [...s];
+}
+const batterEntryFieldOrder = ['타순','이름','타석','타수','1루타','2루타','3루타','홈런','타점','득점','도루','도루자','볼넷','사구','삼진','희타','희비','병살'];
+const pitcherEntryFieldOrder = ['이름','이닝','타자','타수','피안타','피홈런','볼넷','사구','탈삼진','실점','자책점','승','패'];
+
+function addBatterEntryRow(){
+  const tbody = document.getElementById('battersEntryBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = batterEntryFieldOrder.map(f=>{
+    if (f === '이름') return `<td><input type="text" data-f="이름" list="rosterList" placeholder="이름" /></td>`;
+    if (f === '타순') return `<td><input type="text" data-f="타순" placeholder="1" /></td>`;
+    return `<td><input type="number" data-f="${f}" placeholder="0" /></td>`;
+  }).join('') + `<td><button type="button" class="row-del">✕</button></td>`;
+  tr.querySelector('.row-del').addEventListener('click', ()=>tr.remove());
+  tbody.appendChild(tr);
+}
+function addPitcherEntryRow(){
+  const tbody = document.getElementById('pitchersEntryBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = pitcherEntryFieldOrder.map(f=>{
+    if (f === '이름') return `<td><input type="text" data-f="이름" list="rosterList" placeholder="이름" /></td>`;
+    if (f === '이닝') return `<td><input type="number" step="0.1" data-f="이닝" placeholder="0" /></td>`;
+    return `<td><input type="number" data-f="${f}" placeholder="0" /></td>`;
+  }).join('') + `<td><button type="button" class="row-del">✕</button></td>`;
+  tr.querySelector('.row-del').addEventListener('click', ()=>tr.remove());
+  tbody.appendChild(tr);
+}
+
+function renderEntryStatics(){
+  // year select
+  const ySel = document.getElementById('f_year');
+  const opts = [...yearKeys, '__new__'];
+  ySel.innerHTML = opts.map(y=>`<option value="${y}">${y==='__new__'?'+ 새 연도':y+'년'}</option>`).join('');
+  ySel.value = currentYear !== CAREER ? currentYear : (yearKeys[yearKeys.length-1] || '__new__');
+  document.getElementById('f_year_new_wrap').classList.toggle('hidden', ySel.value !== '__new__');
+  // league datalist
+  document.getElementById('leagueList').innerHTML = allKnownLeagues().map(l=>`<option value="${l}"></option>`).join('');
+  // roster datalist
+  document.getElementById('rosterList').innerHTML = allKnownNames().map(n=>`<option value="${n}"></option>`).join('');
+}
+
+function updateResultPreview(){
+  const us = parseInt(document.getElementById('f_us').value, 10);
+  const opp = parseInt(document.getElementById('f_opp').value, 10);
+  const el = document.getElementById('resultPreview');
+  if (isNaN(us) || isNaN(opp)){ el.innerHTML = ''; return; }
+  const outcome = us > opp ? 'W' : (us < opp ? 'L' : 'D');
+  const label = outcome==='W' ? '승' : (outcome==='L' ? '패' : '무');
+  el.innerHTML = `<span class="result-badge ${outcome}">${label}</span> ${us} : ${opp}`;
+}
+
+function collectEntryForm(){
+  const ySel = document.getElementById('f_year').value;
+  const year = ySel === '__new__' ? String(document.getElementById('f_year_new').value || '').trim() : ySel;
+  const month = String(document.getElementById('f_month').value || '').padStart(2,'0');
+  const day = String(document.getElementById('f_day').value || '').padStart(2,'0');
+  const league = document.getElementById('f_league').value.trim();
+  const opponent = document.getElementById('f_opponent').value.trim();
+  const us = parseInt(document.getElementById('f_us').value, 10);
+  const opp = parseInt(document.getElementById('f_opp').value, 10);
+  const note = document.getElementById('f_note').value.trim();
+
+  if (!year || !/^\d{4}$/.test(year)) throw new Error('연도를 정확히 입력해주세요 (예: 2026)');
+  if (!month || !day || month==='00' || day==='00') throw new Error('월/일을 입력해주세요');
+  if (!opponent) throw new Error('상대팀을 입력해주세요');
+  if (isNaN(us) || isNaN(opp)) throw new Error('점수를 입력해주세요');
+
+  const outcome = us > opp ? 'W' : (us < opp ? 'L' : 'D');
+
+  const batters = [];
+  document.querySelectorAll('#battersEntryBody tr').forEach(tr=>{
+    const nameInput = tr.querySelector('input[data-f="이름"]');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    const row = {'이름': name, '게임': 1};
+    batterEntryFieldOrder.forEach(f=>{
+      if (f==='이름') return;
+      const inp = tr.querySelector(`input[data-f="${f}"]`);
+      const raw = inp.value.trim();
+      if (f === '타순'){ row['타순'] = raw || null; return; }
+      row[f] = raw === '' ? 0 : Number(raw);
+    });
+    row['안타계'] = (row['1루타']||0) + (row['2루타']||0) + (row['3루타']||0) + (row['홈런']||0);
+    batters.push(row);
+  });
+
+  const pitchers = [];
+  document.querySelectorAll('#pitchersEntryBody tr').forEach(tr=>{
+    const nameInput = tr.querySelector('input[data-f="이름"]');
+    const name = nameInput.value.trim();
+    if (!name) return;
+    const row = {'이름': name};
+    pitcherEntryFieldOrder.forEach(f=>{
+      if (f==='이름') return;
+      const inp = tr.querySelector(`input[data-f="${f}"]`);
+      const raw = inp.value.trim();
+      row[f] = raw === '' ? 0 : Number(raw);
+    });
+    pitchers.push(row);
+  });
+
+  const date_code = month+day;
+  let id, source, edited=false;
+  if (editingGameId){
+    const existing = ALL_GAMES.find(g=>g.id === editingGameId);
+    id = editingGameId;
+    source = existing ? existing.source : 'user';
+    edited = true;
+  } else {
+    id = 'u-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+    source = 'user';
+  }
+  return {
+    id, year, source, edited,
+    date_code, opponent, league: league || '기타',
+    result: { us, opp, outcome, note: note || undefined },
+    batters, pitchers,
+  };
+}
+
+function resetEntryForm(){
+  editingGameId = null;
+  document.getElementById('editBanner').classList.add('hidden');
+  document.getElementById('saveGameBtn').textContent = '경기 기록 저장';
+  document.getElementById('f_month').value = '';
+  document.getElementById('f_day').value = '';
+  document.getElementById('f_league').value = '';
+  document.getElementById('f_opponent').value = '';
+  document.getElementById('f_us').value = '';
+  document.getElementById('f_opp').value = '';
+  document.getElementById('f_note').value = '';
+  document.getElementById('battersEntryBody').innerHTML = '';
+  document.getElementById('pitchersEntryBody').innerHTML = '';
+  for (let i=0;i<9;i++) addBatterEntryRow();
+  addPitcherEntryRow();
+  renderEntryStatics();
+  updateResultPreview();
+}
+
+function fillBatterEntryRow(tr, b){
+  batterEntryFieldOrder.forEach(f=>{
+    const inp = tr.querySelector(`input[data-f="${f}"]`);
+    if (!inp) return;
+    if (f === '이름') inp.value = b['이름'] || '';
+    else if (f === '타순') inp.value = (b['타순']!=null) ? b['타순'] : '';
+    else inp.value = b[f] ? b[f] : '';
+  });
+}
+function fillPitcherEntryRow(tr, p){
+  pitcherEntryFieldOrder.forEach(f=>{
+    const inp = tr.querySelector(`input[data-f="${f}"]`);
+    if (!inp) return;
+    if (f === '이름') inp.value = p['이름'] || '';
+    else inp.value = p[f] ? p[f] : '';
+  });
+}
+
+function startEditGame(id){
+  const game = ALL_GAMES.find(g=>g.id === id);
+  if (!game) return;
+  editingGameId = id;
+
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab[data-tab="entry"]').classList.add('active');
+  document.getElementById('panel-entry').classList.add('active');
+
+  renderEntryStatics();
+  document.getElementById('f_year').value = yearKeys.includes(game.year) ? game.year : '__new__';
+  document.getElementById('f_year_new_wrap').classList.toggle('hidden', document.getElementById('f_year').value !== '__new__');
+  if (document.getElementById('f_year').value === '__new__') document.getElementById('f_year_new').value = game.year;
+  document.getElementById('f_month').value = parseInt(game.date_code.slice(0,2), 10);
+  document.getElementById('f_day').value = parseInt(game.date_code.slice(2,4), 10);
+  document.getElementById('f_league').value = game.league || '';
+  document.getElementById('f_opponent').value = game.opponent || '';
+  document.getElementById('f_us').value = (game.result && game.result.us!=null) ? game.result.us : '';
+  document.getElementById('f_opp').value = (game.result && game.result.opp!=null) ? game.result.opp : '';
+  document.getElementById('f_note').value = (game.result && game.result.note) || '';
+  updateResultPreview();
+
+  const bBody = document.getElementById('battersEntryBody');
+  bBody.innerHTML = '';
+  const activeBatters = game.batters.filter(b=>b['게임']);
+  (activeBatters.length ? activeBatters : Array(9).fill({})).forEach(b=>{
+    addBatterEntryRow();
+    fillBatterEntryRow(bBody.lastElementChild, b);
+  });
+  const pBody = document.getElementById('pitchersEntryBody');
+  pBody.innerHTML = '';
+  (game.pitchers.length ? game.pitchers : [{}]).forEach(p=>{
+    addPitcherEntryRow();
+    fillPitcherEntryRow(pBody.lastElementChild, p);
+  });
+
+  document.getElementById('editBanner').classList.remove('hidden');
+  document.getElementById('editBannerText').textContent = `${game.year}년 ${game.date_code.slice(0,2)}/${game.date_code.slice(2,4)} vs ${game.opponent}`;
+  document.getElementById('saveGameBtn').textContent = '수정 내용 저장';
+  document.getElementById('panel-entry').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function cancelEdit(){ resetEntryForm(); }
+
+async function handleSaveGame(){
+  const btn = document.getElementById('saveGameBtn');
+  const status = document.getElementById('saveStatus');
+  const wasEditing = !!editingGameId;
+  try {
+    const game = collectEntryForm();
+    btn.disabled = true;
+    status.textContent = '저장 중...';
+    status.className = 'save-status';
+    await persistNewGame(game);
+    const idx = ALL_GAMES.findIndex(g=>g.id === game.id);
+    if (idx >= 0) ALL_GAMES[idx] = game; else ALL_GAMES.push(game);
+    rebuildYearsMap();
+    currentYear = game.year;
+    openPlayer = null; openPitcher = null;
+    renderAll();
+    resetEntryForm();
+    status.textContent = wasEditing ? '수정 내용을 저장했어요!' : '저장했어요! 모든 탭에 반영됐어요.';
+    status.className = 'save-status ok';
+  } catch(e){
+    status.textContent = e.message || '저장에 실패했어요.';
+    status.className = 'save-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderUserGamesList(){
+  const wrap = document.getElementById('userGamesList');
+  const userGames = [...ALL_GAMES].filter(g=>g.source==='user').sort((a,b)=> (b.year+b.date_code).localeCompare(a.year+a.date_code));
+  if (!userGames.length){ wrap.innerHTML = '<div class="empty">아직 직접 입력한 경기가 없어요.</div>'; return; }
+  wrap.innerHTML = userGames.map(g=>{
+    const {m,d} = fmtDate(g.date_code);
+    const res = g.result || {};
+    const badge = res.outcome ? `<span class="result-badge ${res.outcome}">${res.outcome==='W'?'승':res.outcome==='L'?'패':'무'}</span>` : '';
+    const score = (res.us!=null && res.opp!=null) ? `<span class="score">${res.us} : ${res.opp}</span>` : '';
+    return `<div class="game-card">
+      <div class="game-head" style="cursor:default;">
+        <div class="game-date">${g.year}<small>${m}/${d}</small></div>
+        <div class="game-info">
+          <div class="game-vs">vs ${g.opponent} ${badge} ${score} <span class="tag">${g.league||''}</span></div>
+        </div>
+        <button class="game-edit" data-id="${g.id}" title="수정">✎ 수정</button>
+        <button class="game-delete" data-id="${g.id}">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.game-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=> startEditGame(btn.dataset.id));
+  });
+  wrap.querySelectorAll('.game-delete').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if (!confirm('이 경기 기록을 삭제할까요? 되돌릴 수 없어요.')) return;
+      const id = btn.dataset.id;
+      btn.disabled = true; btn.textContent = '삭제 중...';
+      await deleteStoredGame(id);
+      ALL_GAMES = ALL_GAMES.filter(g=>g.id !== id);
+      rebuildYearsMap();
+      openPlayer = null; openPitcher = null;
+      renderAll();
+    });
+  });
+}
+
+document.getElementById('addBatterRow').addEventListener('click', addBatterEntryRow);
+document.getElementById('addPitcherRow').addEventListener('click', addPitcherEntryRow);
+document.getElementById('saveGameBtn').addEventListener('click', handleSaveGame);
+document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+document.getElementById('f_us').addEventListener('input', updateResultPreview);
+document.getElementById('f_opp').addEventListener('input', updateResultPreview);
+document.getElementById('f_year').addEventListener('change', (e)=>{
+  document.getElementById('f_year_new_wrap').classList.toggle('hidden', e.target.value !== '__new__');
+});
+
+/* ---------- INIT ---------- */
+async function init(){
+  document.getElementById('setupWarning').style.display = hasStorage ? 'none' : 'flex';
+  document.getElementById('gamesList').innerHTML = '<div class="loading-note">불러오는 중...</div>';
+  let stored = [];
+  try { stored = await loadStoredGames(); } catch(e){ stored = []; }
+  const map = new Map();
+  SEED_GAMES.forEach(g=>map.set(g.id, g));
+  stored.forEach(g=>map.set(g.id, g)); // stored edits override seed games with the same id
+  ALL_GAMES = [...map.values()];
+  rebuildYearsMap();
+  for (let i=0;i<9;i++) addBatterEntryRow();
+  addPitcherEntryRow();
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
