@@ -250,7 +250,7 @@ main{padding:36px 0 90px;}
   border:1px solid var(--line);
   border-radius:var(--radius);
   background:var(--panel);
-  -webkit-overflow-scrolling:touch;
+  -webkit-overflow-scrolling:auto;
 }
 .season-table-scroll{
   max-height:66vh;
@@ -1516,12 +1516,28 @@ function renderAll(){
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJOv3HCTs2_4dxjUHWhN5REqOqZJ9KDOGa4-TMgp5bwtfNDMA8SdEmgIjbMOWyMth8/exec';
 const hasStorage = !!APPS_SCRIPT_URL && !APPS_SCRIPT_URL.startsWith('PASTE_');
 
+const CACHE_KEY = 'teamone_games_cache_v1';
+
+function readCache(){
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch(e){ return null; }
+}
+function writeCache(games){
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(games)); } catch(e){ /* quota/private mode - ignore */ }
+}
+
 async function loadStoredGames(){
   if (!hasStorage) return [];
   try {
     const res = await fetch(APPS_SCRIPT_URL, { method:'GET' });
     const data = await res.json();
-    return data.games || [];
+    const games = data.games || [];
+    writeCache(games);
+    return games;
   } catch(e){ console.error('loadStoredGames failed', e); return []; }
 }
 async function persistNewGame(game){
@@ -1532,6 +1548,11 @@ async function persistNewGame(game){
   });
   const data = await res.json();
   if (!data.ok) throw new Error('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
+  // keep the local cache in sync (upsert)
+  const cache = readCache() || [];
+  const i = cache.findIndex(g => g.id === game.id);
+  if (i >= 0) cache[i] = game; else cache.push(game);
+  writeCache(cache);
 }
 async function deleteStoredGame(id){
   if (!hasStorage) return;
@@ -1540,6 +1561,7 @@ async function deleteStoredGame(id){
       method: 'POST',
       body: JSON.stringify({ action:'delete', id }),
     });
+    writeCache((readCache() || []).filter(g => g.id !== id));
   } catch(e){ console.error('deleteStoredGame failed', e); }
 }
 
@@ -1848,17 +1870,21 @@ function mergeGames(stored){
 async function init(){
   document.getElementById('setupWarning').style.display = hasStorage ? 'none' : 'flex';
 
-  // 1) paint immediately with the built-in seed data (no network wait)
-  mergeGames([]);
+  // 1) paint immediately — using cached sheet data if we have it, so 2026 shows up instantly too
+  const cached = readCache();
+  mergeGames(cached || []);
   for (let i=0;i<9;i++) addBatterEntryRow();
   addPitcherEntryRow();
   renderAll();
 
-  // 2) then fetch the shared Google Sheet data in the background and re-render
+  // 2) refresh from the shared Google Sheet in the background
   if (!hasStorage) return;
   let stored = [];
   try { stored = await loadStoredGames(); } catch(e){ return; }
-  if (!stored.length) return;
+
+  // skip the re-render if nothing actually changed
+  if (cached && JSON.stringify(cached) === JSON.stringify(stored)) return;
+
   const prevYear = currentYear;
   mergeGames(stored);
   if (yearKeys.includes(prevYear)) currentYear = prevYear;
