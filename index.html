@@ -258,7 +258,7 @@ main{padding:36px 0 90px;}
 }
 /* Fix1: box scores inside game cards also get a pinned header */
 .box-table-scroll{
-  max-height:60vh;
+  max-height:78vh;
   overflow-y:auto;
 }
 /* Fix2: stop scroll-chaining so nested tables don't yank the page around */
@@ -1361,20 +1361,38 @@ function renderGames(){
       </div>
     </div>`;
   }).join('');
+  function closeCard(card){
+    const body = card.querySelector('.game-body');
+    if (!body) return;
+    // if it was released to 'none', pin it back to a pixel value so the collapse can animate
+    if (body.style.maxHeight === 'none') body.style.maxHeight = body.scrollHeight + 'px';
+    void body.offsetHeight; // force reflow so the transition runs
+    card.classList.remove('open');
+    body.style.maxHeight = null;
+  }
+  function openCard(card){
+    const body = card.querySelector('.game-body');
+    if (!body) return;
+    card.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    // once expanded, drop the clip entirely — otherwise overflow:hidden clips the
+    // pitcher table and glitches while the batter table is scrolled internally
+    const done = (e)=>{
+      if (e.propertyName !== 'max-height') return;
+      body.removeEventListener('transitionend', done);
+      if (card.classList.contains('open')) body.style.maxHeight = 'none';
+    };
+    body.addEventListener('transitionend', done);
+  }
   gamesList.querySelectorAll('.game-head').forEach(head=>{
     head.addEventListener('click', ()=>{
       const card = head.closest('.game-card');
-      const body = card.querySelector('.game-body');
       const isOpen = card.classList.contains('open');
       // close every other open card first (accordion behavior)
       gamesList.querySelectorAll('.game-card.open').forEach(other=>{
-        if (other === card) return;
-        other.classList.remove('open');
-        const ob = other.querySelector('.game-body');
-        if (ob) ob.style.maxHeight = null;
+        if (other !== card) closeCard(other);
       });
-      if (isOpen){ body.style.maxHeight = null; card.classList.remove('open'); }
-      else { card.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
+      if (isOpen) closeCard(card); else openCard(card);
     });
   });
   gamesList.querySelectorAll('.game-edit').forEach(btn=>{
