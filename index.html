@@ -185,7 +185,7 @@ a{color:inherit;}
 main{padding:36px 0 90px;}
 .panel{display:none;}
 .panel.active{display:block; animation:fade .3s ease;}
-@keyframes fade{from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);}}
+@keyframes fade{from{opacity:0;} to{opacity:1;}}
 
 .section-head{
   display:flex; align-items:baseline; justify-content:space-between;
@@ -252,9 +252,13 @@ main{padding:36px 0 90px;}
   background:var(--panel);
   -webkit-overflow-scrolling:touch;
 }
-table{border-collapse:collapse; width:100%; font-size:13px;}
+.season-table-scroll{
+  max-height:66vh;
+  overflow-y:auto;
+}
+table{border-collapse:separate; border-spacing:0; width:100%; font-size:13px;}
 thead th{
-  position:sticky; top:59px; z-index:6;
+  position:sticky; top:0; z-index:6;
   background:var(--panel-2);
   color:var(--gold);
   font-family:'JetBrains Mono',monospace;
@@ -609,7 +613,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
     <div class="leaders" id="leaders"></div>
     <div class="leaders-note" id="leadersNote"></div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
-    <div class="table-scroll">
+    <div class="table-scroll season-table-scroll">
       <table id="batterTable" class="sticky-col2">
         <thead><tr id="batterHead"></tr></thead>
         <tbody id="batterBody"></tbody>
@@ -623,7 +627,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
       <div class="note">등판 기록이 있는 선수만 표시돼요</div>
     </div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
-    <div class="table-scroll">
+    <div class="table-scroll season-table-scroll">
       <table id="pitcherTable" class="sticky-col2">
         <thead><tr id="pitcherHead"></tr></thead>
         <tbody id="pitcherBody"></tbody>
