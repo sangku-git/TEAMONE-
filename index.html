@@ -196,10 +196,10 @@ main{padding:36px 0 90px;}
 
 /* leader cards */
 .leaders{
-  display:grid; grid-template-columns:repeat(5,1fr); gap:10px;
+  display:grid; grid-template-columns:repeat(6,1fr); gap:10px;
   margin-bottom:10px;
 }
-@media (max-width:900px){.leaders{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:1100px){.leaders{grid-template-columns:repeat(3,1fr);}}
 @media (max-width:560px){.leaders{grid-template-columns:repeat(2,1fr);}}
 .leader-card{
   background:var(--panel);
@@ -1096,6 +1096,7 @@ function renderBatterBody(){
 const QUALIFY_PA_PER_GAME = 1.0; // 팀원 특성상 완화: 경기수만큼(19경기=19타석)
 const leaderDefs = [
   {label:'타율왕', key:'타율', fmt:fmtAvg, rate:true},
+  {label:'안타왕', key:'안타계', fmt:fmtInt},
   {label:'홈런왕', key:'홈런', fmt:fmtInt},
   {label:'타점왕', key:'타점', fmt:fmtInt},
   {label:'도루왕', key:'도루', fmt:fmtInt},
