@@ -240,6 +240,9 @@ main{padding:36px 0 90px;}
 .rank-row.rank-1 .rank-val{
   font-family:'Teko',sans-serif; font-size:24px; color:var(--clay-bright); font-weight:600;
 }
+.empty-tier{
+  font-size:12.5px; color:var(--muted); padding:10px 0;
+}
 
 /* table */
 .table-scroll{
@@ -1061,18 +1064,37 @@ function renderLeaders(){
   document.getElementById('leaders').innerHTML = leaderDefs.map(d=>{
     const pool = d.rate ? active.filter(p=>(p['타석']||0) >= minPA) : active;
     const usable = pool.length ? pool : active; // fallback if nobody qualifies
-    const top3 = [...usable].sort((a,b)=>(b[d.key]||0)-(a[d.key]||0)).slice(0,3);
-    const rows = top3.map((p,i)=>
-      `<div class="rank-row rank-${i+1}">
+    const sorted = [...usable].sort((a,b)=>(b[d.key]||0)-(a[d.key]||0));
+    const topVal = sorted.length ? (sorted[0][d.key]||0) : 0;
+    if (!topVal) {
+      return `<div class="leader-card"><div class="cat">${d.label}</div><div class="empty-tier">아직 기록 없음</div></div>`;
+    }
+    // group into tiers of equal value, take top 3 distinct tiers
+    const tiers = [];
+    for (const p of sorted) {
+      const v = p[d.key]||0;
+      if (tiers.length && tiers[tiers.length-1].val === v) tiers[tiers.length-1].players.push(p);
+      else tiers.push({val:v, players:[p]});
+      if (tiers.length > 3) break;
+    }
+    const rows = tiers.slice(0,3).map((tier,i)=>{
+      const names = tier.players;
+      let nameHtml;
+      if (names.length <= 2) {
+        nameHtml = names.map(p=>p['이름']).join(' · ');
+      } else {
+        nameHtml = `${names[0]['이름']} 외 ${names.length-1}명`;
+      }
+      return `<div class="rank-row rank-${i+1}">
         <span class="rank-num">${i+1}</span>
-        <span class="rank-name">${p['이름']}</span>
-        <span class="rank-val">${d.fmt(p[d.key])}</span>
-      </div>`
-    ).join('');
+        <span class="rank-name" title="${names.map(p=>p['이름']).join(', ')}">${nameHtml}</span>
+        <span class="rank-val">${d.fmt(tier.val)}</span>
+      </div>`;
+    }).join('');
     return `<div class="leader-card"><div class="cat">${d.label}</div>${rows}</div>`;
   }).join('');
   document.getElementById('leadersNote').innerHTML =
-    `＊ 타율왕·OPS 1위는 규정타석(경기수×${QUALIFY_PA_PER_GAME.toFixed(1)} = ${minPA}타석) 이상만 집계돼요.`;
+    `＊ 타율왕·OPS 1위는 규정타석(경기수×${QUALIFY_PA_PER_GAME.toFixed(1)} = ${minPA}타석) 이상만 집계돼요. 동점이면 공동 순위로 묶여요.`;
 }
 
 /* ---------- PITCHERS ---------- */
