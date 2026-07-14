@@ -254,7 +254,7 @@ main{padding:36px 0 90px;}
 }
 table{border-collapse:collapse; width:100%; font-size:13px;}
 thead th{
-  position:sticky; top:0;
+  position:sticky; top:59px; z-index:6;
   background:var(--panel-2);
   color:var(--gold);
   font-family:'JetBrains Mono',monospace;
@@ -291,8 +291,8 @@ tbody tr.inactive td{opacity:.4;}
   margin-left:5px; vertical-align:middle; letter-spacing:.02em;
 }
 .pos-line{
-  font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--muted);
-  margin-top:1px; letter-spacing:.02em;
+  font-family:'Inter',sans-serif; font-size:11.5px; color:var(--chalk-dim);
+  margin-top:2px; letter-spacing:.01em; font-weight:500;
 }
 .leaders-note{
   font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted);
@@ -372,7 +372,7 @@ tbody tr.inactive td{opacity:.4;}
   font-family:'Teko',sans-serif; font-size:26px; color:var(--gold);
   min-width:64px; line-height:1;
 }
-.game-date small{display:block; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:.05em; margin-top:2px;}
+.game-date small{display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--chalk-dim); letter-spacing:.04em; margin-top:3px; font-weight:600;}
 .game-info{flex:1; min-width:0;}
 .game-vs{font-size:15px; font-weight:700; color:var(--chalk); display:flex; align-items:center; flex-wrap:wrap; gap:8px;}
 .result-badge{
@@ -406,6 +406,11 @@ tbody tr.inactive td{opacity:.4;}
 }
 .game-card.open .game-body{border-top-color:var(--line);}
 .game-body-inner{padding:14px 16px 18px;}
+.game-body-inner table{font-size:14.5px;}
+.game-body-inner tbody td{color:var(--chalk-dim); padding:10px 11px;}
+.game-body-inner tbody td:first-child, .game-body-inner tbody td:nth-child(2){font-size:14.5px;}
+.game-body-inner td.zero{color:rgba(207,216,201,.42);}
+.game-body-inner thead th{font-size:11.5px;}
 .game-body-inner h4{
   font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
   color:var(--gold); margin:14px 0 8px;
@@ -619,7 +624,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
     </div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
     <div class="table-scroll">
-      <table id="pitcherTable" class="sticky-col1">
+      <table id="pitcherTable" class="sticky-col2">
         <thead><tr id="pitcherHead"></tr></thead>
         <tbody id="pitcherBody"></tbody>
       </table>
@@ -1159,11 +1164,38 @@ function renderPitcherBreakdown(name){
   </table></div>${logHtml}</div>`;
 }
 let openPitcher = null;
+let pitcherSort = {col:'ERA', dir:1}; // ascending: lower ERA = better, shown first
+function renderPitcherHead(){
+  const head = document.getElementById('pitcherHead');
+  head.innerHTML = '<th class="rank-th">#</th>' + pitcherCols.map(c=>{
+    const sorted = c.k === pitcherSort.col;
+    const arrow = sorted ? (pitcherSort.dir===1?'▲':'▼') : '';
+    return `<th data-k="${c.k}" class="${sorted?'sorted':''}">${c.label}<span class="arrow">${arrow}</span></th>`;
+  }).join('');
+  head.querySelectorAll('th[data-k]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const k = th.dataset.k;
+      if (pitcherSort.col === k) pitcherSort.dir *= -1;
+      else { pitcherSort.col = k; pitcherSort.dir = (k==='이름')?1:(k==='ERA'||k==='WHIP'||k==='피안타율' ? 1 : -1); }
+      renderPitcherHead(); renderPitcherBody();
+    });
+  });
+}
 function renderPitcherBody(){
   const games = gamesForScope(currentYear);
-  const rows = aggregatePitchersByPlayer(games);
-  const head = document.getElementById('pitcherHead');
-  head.innerHTML = pitcherCols.map(c=>`<th>${c.label}</th>`).join('');
+  const rows0 = aggregatePitchersByPlayer(games);
+  const rows = [...rows0].sort((a,b)=>{
+    let av = a[pitcherSort.col], bv = b[pitcherSort.col];
+    if (typeof av === 'string' || typeof bv === 'string') {
+      av = av || ''; bv = bv || '';
+      return pitcherSort.dir * String(av).localeCompare(String(bv), 'ko');
+    }
+    av = av ?? Infinity; bv = bv ?? Infinity;
+    return pitcherSort.dir * (av - bv);
+  });
+  const total = rows.length;
+  const label = currentYear===CAREER ? '통산' : currentYear+' 시즌';
+  document.getElementById('pitchersTitle').textContent = `${label} 투수 부문 · 전체 ${total}명`;
   const body = document.getElementById('pitcherBody');
   if (!rows.length){
     document.getElementById('panel-pitchers').querySelector('.table-scroll').style.display='none';
@@ -1173,13 +1205,15 @@ function renderPitcherBody(){
   }
   document.getElementById('panel-pitchers').querySelector('.table-scroll').style.display='';
   document.querySelector('#panel-pitchers .empty')?.remove();
-  body.innerHTML = rows.map(r=>{
+  body.innerHTML = rows.map((r,i)=>{
     const isOpen = openPitcher === r['이름'];
-    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + pitcherCols.map(c=>{
+    const rankCell = `<td class="rank-cell">${i+1}</td>`;
+    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + rankCell + pitcherCols.map(c=>{
       const v = r[c.k];
-      return `<td class="${v===0||v===null?'zero':''}">${c.fmt(v)}</td>`;
+      const cls = (c.k===pitcherSort.col) ? 'hl' : ((v===0||v===null)?'zero':'');
+      return `<td class="${cls}">${c.fmt(v)}</td>`;
     }).join('') + `</tr>`;
-    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${pitcherCols.length}">${isOpen?renderPitcherBreakdown(r['이름']):''}</td></tr>`;
+    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${pitcherCols.length+1}">${isOpen?renderPitcherBreakdown(r['이름']):''}</td></tr>`;
     return mainRow + breakdownRow;
   }).join('');
   body.querySelectorAll('tr.playerrow').forEach(tr=>{
@@ -1254,7 +1288,7 @@ function batterBoxTable(rows){
 }
 
 function renderGames(){
-  const games = [...gamesForScope(currentYear)].sort((a,b)=> (a.year+a.date_code).localeCompare(b.year+b.date_code));
+  const games = [...gamesForScope(currentYear)].sort((a,b)=> (b.year+b.date_code).localeCompare(a.year+a.date_code));
   const gamesList = document.getElementById('gamesList');
   gamesList.innerHTML = games.map((g, idx)=>{
     const {m,d} = fmtDate(g.date_code);
@@ -1263,11 +1297,12 @@ function renderGames(){
     const badge = res.outcome ? `<span class="result-badge ${res.outcome}">${res.outcome==='W'?'승':res.outcome==='L'?'패':'무'}</span>` : '';
     const score = (res.us!=null && res.opp!=null) ? `<span class="score">${res.us} : ${res.opp}</span>` : '';
     const yearTag = currentYear===CAREER ? `<span class="tag">${g.year||''}</span>` : '';
+    const leagueTag = g.league ? `<span class="tag">${g.league}</span>` : '';
     return `<div class="game-card" id="game-${idx}">
       <div class="game-head" data-idx="${idx}">
-        <div class="game-date">${m}/${d}<small>${g.league||''}</small></div>
+        <div class="game-date">${m}/${d}</div>
         <div class="game-info">
-          <div class="game-vs">vs ${g.opponent} ${badge} ${score} ${yearTag}</div>
+          <div class="game-vs">vs ${g.opponent} ${badge} ${score} ${leagueTag} ${yearTag}</div>
           ${res.note?`<div class="game-note">${res.note}</div>`:''}
         </div>
         <button class="game-edit" data-id="${g.id}" title="수정">✎</button>
@@ -1410,7 +1445,6 @@ function renderTeamRecords(){
 /* ---------- TITLES ---------- */
 function renderTitles(){
   const label = currentYear===CAREER ? '통산' : currentYear+' 시즌';
-  document.getElementById('pitchersTitle').textContent = label+' 투수 부문';
   document.getElementById('gamesTitle').textContent = (currentYear===CAREER?'전체':label)+' 경기별 기록';
   document.getElementById('teamTitle').textContent = label+' 팀 기록';
 }
@@ -1423,6 +1457,7 @@ function renderAll(){
   renderBatterHead();
   renderBatterBody();
   renderLeaders();
+  renderPitcherHead();
   renderPitcherBody();
   renderGames();
   renderTeamRecords();
