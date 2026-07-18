@@ -46,6 +46,7 @@ h1,h2,h3,.display{font-family:'Teko',sans-serif;font-weight:600;letter-spacing:.
 .mono{font-family:'JetBrains Mono',monospace;}
 a{color:inherit;}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+@media (max-width:700px){ .wrap{padding:0 10px;} }
 
 /* ---------- HERO ---------- */
 .hero{
@@ -437,13 +438,27 @@ tbody tr.inactive td{opacity:.4;}
 .game-body-inner thead th{font-size:11.5px;}
 /* Fix3: on phones, tighten the box score so more stat columns fit at a glance */
 @media (max-width:700px){
-  .game-body-inner{padding:12px 8px 14px;}
+  .game-body-inner{padding:12px 6px 14px;}
   .game-body-inner table{font-size:13px;}
-  .game-body-inner tbody td{padding:8px 5px;}
+  .game-body-inner tbody td{padding:8px 4px;}
   .game-body-inner tbody td:first-child, .game-body-inner tbody td:nth-child(2){font-size:13px;}
-  .game-body-inner thead th{font-size:10px; padding:8px 5px;}
+  .game-body-inner thead th{font-size:10px; padding:8px 4px;}
   .game-body-inner .slot-tag{font-size:9px; padding:1px 4px;}
   .game-body-inner .pos-line{font-size:10px;}
+}
+/* Fix7: batter box score has 15 columns — let headers wrap to 2 lines and
+   shrink numeric columns further so everything fits without side-scrolling */
+@media (max-width:480px){
+  .game-body-inner{padding:10px 4px 12px;}
+  .game-body-inner thead th{
+    white-space:normal; line-height:1.15;
+    font-size:9px; padding:6px 2px; letter-spacing:0;
+  }
+  .game-body-inner tbody td{padding:6px 2px; font-size:11px;}
+  .game-body-inner tbody td:first-child, .game-body-inner tbody td:nth-child(2){font-size:11.5px;}
+  .game-body-inner .pos-line{font-size:9.5px;}
+  .game-body-inner .slot-tag{font-size:8.5px; padding:1px 3px;}
+  .game-body-inner .subtag{font-size:8px; padding:0 4px; margin-left:3px;}
 }
 .game-body-inner h4{
   font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
