@@ -343,11 +343,14 @@ tbody tr.inactive td{opacity:.4;}
   transition:transform .15s ease;
 }
 .sticky-col1 tbody tr.playerrow.open td:first-child::before{transform:rotate(90deg); color:var(--gold);}
+/* game pitcher box score reuses sticky-col1 but has no team column to protect, so center its 선수 column */
+.box-table-scroll .sticky-col1 thead th:first-child,
+.box-table-scroll .sticky-col1 tbody td:first-child{text-align:center;}
 
 /* sticky-col2: use when column 1 is a short label (batting order '순', or rank '#') and column 2 is the name */
-.sticky-col2 thead th:first-child, .sticky-col2 thead th:nth-child(2){text-align:left;}
+.sticky-col2 thead th:first-child, .sticky-col2 thead th:nth-child(2){text-align:center;}
 .sticky-col2 tbody td:nth-child(2){
-  text-align:left; font-family:'Inter',sans-serif; font-weight:700; color:var(--chalk);
+  text-align:center; font-family:'Inter',sans-serif; font-weight:700; color:var(--chalk);
   font-size:14.5px;
   position:sticky; left:0; background:var(--panel);
 }
