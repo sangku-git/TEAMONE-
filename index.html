@@ -747,7 +747,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
   <section class="panel" id="panel-pitchers">
     <div class="section-head">
       <h2 id="pitchersTitle">투수 부문</h2>
-      <div class="note">등판 기록이 있는 선수만 표시돼요</div>
+      <div class="note">등판 기록이 있는 선수만 표시돼요 · 선수 클릭 = 개인 기록 카드</div>
     </div>
     <div class="scroll-hint">← 좌우로 스크롤 →</div>
     <div class="table-scroll season-table-scroll">
@@ -987,6 +987,11 @@ function aggregateTeamBatting(games){
   }
   return computeBatterRates(acc);
 }
+/* 시트에는 등판하지 않은 투수도 0으로 채운 행이 함께 들어오므로,
+   실제로 던진 경기(아웃/투구수/상대타자 중 하나라도 있는 경기)만 등판으로 센다 */
+function pitcherAppeared(p){
+  return outsFromIP(p['이닝']) > 0 || (p['투구수']||0) > 0 || (p['타자']||0) > 0;
+}
 function aggregatePitchersByPlayer(games){
   const map = {};
   for (const g of games){
@@ -996,7 +1001,7 @@ function aggregatePitchersByPlayer(games){
       PITCHER_FIELDS.forEach(f=>{ if (f!=='이닝') acc[f]+=(p[f]||0); });
       acc['아웃수'] += outsFromIP(p['이닝']);
       acc['승'] += (p['승']||0); acc['패'] += (p['패']||0);
-      acc['등판'] += 1;
+      if (pitcherAppeared(p)) acc['등판'] += 1;
     }
   }
   return Object.values(map).map(acc=>{
@@ -1199,34 +1204,53 @@ function renderBatterBody(){
 }
 
 /* ---------- PLAYER CARD ---------- */
-/* 주요 기록 6개를 팀 내 순위와 함께 보여주는 전체화면 카드.
-   타율·OPS 순위는 타이틀과 동일한 규정타석 로직을 그대로 따른다. */
-const cardStatDefs = [
-  {key:'타율', label:'타율', fmt:fmtAvg, rate:true},
-  {key:'안타계', label:'안타', fmt:fmtInt},
-  {key:'타점', label:'타점', fmt:fmtInt},
-  {key:'OPS', label:'OPS', fmt:fmtOps, rate:true},
-  {key:'볼넷', label:'볼넷', fmt:fmtInt},
-  {key:'삼진', label:'삼진', fmt:fmtInt, moreIsWorse:true},
-];
-let cardPlayer = null;
+/* 주요 기록 6개를 팀 내 순위와 함께 보여주는 전체화면 카드 (타자/투수 공용).
+   비율 기록 순위는 타이틀과 동일한 규정타석 로직을 그대로 따른다.
+   lower:true = 값이 작을수록 좋은 기록(삼진·방어율·WHIP 등). */
+const cardStatDefs = {
+  batter: [
+    {key:'타율', label:'타율', fmt:fmtAvg, qual:true},
+    {key:'안타계', label:'안타', fmt:fmtInt},
+    {key:'타점', label:'타점', fmt:fmtInt},
+    {key:'OPS', label:'OPS', fmt:fmtOps, qual:true},
+    {key:'볼넷', label:'볼넷', fmt:fmtInt},
+    // 삼진은 적을수록 좋은 기록. 타석 수가 비슷한 선수끼리 비교해야 의미가 있어
+    // 규정타석 충족 선수끼리만 순위를 매긴다.
+    {key:'삼진', label:'삼진', fmt:fmtInt, qual:true, lower:true},
+  ],
+  pitcher: [
+    {key:'ERA', label:'방어율', fmt:fmtNum, lower:true},
+    {key:'이닝', label:'이닝', fmt:fmtIP},
+    {key:'탈삼진', label:'탈삼진', fmt:fmtInt},
+    {key:'WHIP', label:'WHIP', fmt:fmtNum, lower:true},
+    {key:'피안타율', label:'피안타율', fmt:fmtAvg, lower:true},
+    {key:'승', label:'승', fmt:fmtInt},
+  ],
+};
+let cardPlayer = null;   // 선수 이름
+let cardType = 'batter'; // 'batter' | 'pitcher'
 
-function rankOf(pool, key, val){
-  const better = pool.filter(p=>(p[key]||0) > val).length;
+function rankOf(pool, key, val, lower){
+  const better = pool.filter(p=> lower ? (p[key]||0) < val : (p[key]||0) > val).length;
   const tied = pool.filter(p=>(p[key]||0) === val).length;
   return {rank:better+1, tied, of:pool.length};
 }
 
 function renderPlayerCard(){
   if (!cardPlayer) return;
+  const isPitcher = cardType === 'pitcher';
   const games = gamesForScope(currentYear);
-  const all = aggregateBattersByPlayer(games).filter(b=>b['게임']);
+  const all = isPitcher
+    ? aggregatePitchersByPlayer(games).filter(p=>p['등판'])
+    : aggregateBattersByPlayer(games).filter(b=>b['게임']);
   const me = all.find(p=>p['이름']===cardPlayer);
   const scopeLabel = currentYear===CAREER ? '통산' : currentYear+' 시즌';
 
   document.getElementById('pmName').textContent = cardPlayer;
   document.getElementById('pmSub').textContent = me
-    ? `${scopeLabel} · ${me['게임']}경기 · ${me['타석']}타석`
+    ? (isPitcher
+        ? `${scopeLabel} · 투수 · ${me['등판']}경기 · ${fmtIP(me['이닝'])}이닝`
+        : `${scopeLabel} · 타자 · ${me['게임']}경기 · ${me['타석']}타석`)
     : `${scopeLabel} · 기록 없음`;
 
   const pills = [...yearKeys.map(y=>({k:y,label:y+' 시즌'})), {k:CAREER,label:'통산'}];
@@ -1244,20 +1268,24 @@ function renderPlayerCard(){
 
   const body = document.getElementById('pmBody');
   if (!me){
-    body.innerHTML = `<div class="pm-empty">${scopeLabel}에는 <b>${cardPlayer}</b> 선수의 타격 기록이 없어요.</div>`;
+    body.innerHTML = `<div class="pm-empty">${scopeLabel}에는 <b>${cardPlayer}</b> 선수의 ${isPitcher?'등판':'타격'} 기록이 없어요.</div>`;
     return;
   }
 
   const minPA = Math.ceil(games.length * QUALIFY_PA_PER_GAME);
   const qualified = (me['타석']||0) >= minPA;
+  // 방어율·WHIP·피안타율은 실제로 던진 투수끼리만 비교한다
+  const pitcherPool = all.filter(p=>(p['아웃수']||0) > 0);
 
-  const tiles = cardStatDefs.map(d=>{
+  const tiles = cardStatDefs[cardType].map(d=>{
     let badge;
-    if (d.rate && !qualified){
+    if (d.qual && !qualified){
       badge = `<span class="rank-badge na">규정타석 미달</span>`;
     } else {
-      const pool = d.rate ? all.filter(p=>(p['타석']||0) >= minPA) : all;
-      const r = rankOf(pool, d.key, me[d.key]||0);
+      let pool;
+      if (isPitcher) pool = d.lower ? pitcherPool : all;
+      else pool = d.qual ? all.filter(p=>(p['타석']||0) >= minPA) : all;
+      const r = rankOf(pool, d.key, me[d.key]||0, d.lower);
       const cls = r.rank===1 ? 'top1' : (r.rank<=3 ? 'top3' : '');
       const tie = r.tied>1 ? '공동 ' : '';
       badge = `<span class="rank-badge ${cls}">${tie}${r.rank}위 / ${r.of}명</span>`;
@@ -1269,16 +1297,21 @@ function renderPlayerCard(){
     </div>`;
   }).join('');
 
+  const note = isPitcher
+    ? `＊ 방어율·WHIP·피안타율은 값이 낮을수록 높은 순위예요. 등판 기록이 있는 투수끼리만 비교해요.`
+    : `＊ 타율·OPS·삼진 순위는 규정타석(${minPA}타석) 충족 선수끼리만 매겨요. 삼진은 적을수록 높은 순위예요.`;
+
   body.innerHTML =
     `<div class="pm-section">주요 기록 · 팀 내 순위</div>
      <div class="pstat-grid">${tiles}</div>
-     <div class="pm-note">＊ 타율·OPS 순위는 규정타석(${minPA}타석) 충족 선수끼리만 매겨요. 삼진은 많은 순 기준이에요.</div>
+     <div class="pm-note">${note}</div>
      <div class="pm-section">연도별 기록 · 경기별 로그</div>
-     ${renderBatterBreakdown(cardPlayer)}`;
+     ${isPitcher ? renderPitcherBreakdown(cardPlayer) : renderBatterBreakdown(cardPlayer)}`;
 }
 
-function openPlayerCard(name){
+function openPlayerCard(name, type){
   cardPlayer = name;
+  cardType = type || 'batter';
   renderPlayerCard();
   document.getElementById('playerModal').classList.add('open');
   document.getElementById('playerModal').querySelector('.pmodal-sheet').scrollTop = 0;
@@ -1385,7 +1418,7 @@ function renderPitcherBreakdown(name){
 
   const logGames = gamesForScope(currentYear)
     .map(g=>({g, p:g.pitchers.find(x=>x['이름']===name)}))
-    .filter(x=>x.p);
+    .filter(x=>x.p && pitcherAppeared(x.p));
   const logCols = [
     {k:'이닝',l:'이닝',fmt:fmtIP},{k:'투구수',l:'투구수',fmt:fmtInt},{k:'타자',l:'상대타자',fmt:fmtInt},{k:'피안타',l:'피안타',fmt:fmtInt},
     {k:'볼넷',l:'볼넷',fmt:fmtInt},{k:'탈삼진',l:'탈삼진',fmt:fmtInt},{k:'실점',l:'실점',fmt:fmtInt},{k:'자책점',l:'자책점',fmt:fmtInt},
@@ -1451,22 +1484,15 @@ function renderPitcherBody(){
   document.getElementById('panel-pitchers').querySelector('.table-scroll').style.display='';
   document.querySelector('#panel-pitchers .empty')?.remove();
   body.innerHTML = rows.map((r,i)=>{
-    const isOpen = openPitcher === r['이름'];
     const rankCell = `<td class="rank-cell">${i+1}</td>`;
-    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + rankCell + pitcherCols.map(c=>{
+    return `<tr class="playerrow" data-name="${r['이름']}">` + rankCell + pitcherCols.map(c=>{
       const v = r[c.k];
       const cls = (c.k===pitcherSort.col) ? 'hl' : ((v===0||v===null)?'zero':'');
       return `<td class="${cls}">${c.fmt(v)}</td>`;
     }).join('') + `</tr>`;
-    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${pitcherCols.length+1}">${isOpen?renderPitcherBreakdown(r['이름']):''}</td></tr>`;
-    return mainRow + breakdownRow;
   }).join('');
   body.querySelectorAll('tr.playerrow').forEach(tr=>{
-    tr.addEventListener('click', ()=>{
-      const name = tr.dataset.name;
-      openPitcher = (openPitcher === name) ? null : name;
-      renderPitcherBody();
-    });
+    tr.addEventListener('click', ()=> openPlayerCard(tr.dataset.name, 'pitcher'));
   });
 }
 
@@ -1563,7 +1589,7 @@ function renderGames(){
           <h4>타자 기록</h4>
           ${batterBoxTable(activeBatters)}
           <h4>투수 기록</h4>
-          ${gameBoxTable(gamePitcherCols, g.pitchers)}
+          ${gameBoxTable(gamePitcherCols, g.pitchers.filter(pitcherAppeared))}
         </div>
       </div>
     </div>`;
