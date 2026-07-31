@@ -112,6 +112,74 @@ a{color:inherit;}
   background:var(--gold); border-color:var(--gold); color:var(--bg-deep); font-weight:700;
 }
 
+/* ---------- PLAYER CARD (full-screen overlay) ---------- */
+.pmodal{position:fixed; inset:0; z-index:200; display:none;}
+.pmodal.open{display:block;}
+.pmodal-backdrop{position:absolute; inset:0; background:rgba(4,8,16,.7);}
+.pmodal-sheet{
+  position:absolute; inset:0;
+  background:var(--bg);
+  overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  animation:pmodal-in .2s ease;
+}
+@keyframes pmodal-in{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+.pmodal-inner{max-width:1080px; margin:0 auto; padding:0 20px 60px;}
+.pmodal-head{
+  position:sticky; top:0; z-index:5;
+  background:rgba(18,26,46,.95); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  margin:0 -20px 18px; padding:12px 20px;
+  display:flex; align-items:center; gap:12px;
+}
+.pmodal-back{
+  background:none; border:1px solid var(--line); color:var(--chalk-dim);
+  border-radius:8px; font-size:17px; line-height:1; padding:7px 11px; cursor:pointer; flex-shrink:0;
+}
+.pmodal-back:hover{border-color:var(--clay-bright); color:var(--chalk);}
+.pm-name{font-family:'Teko',sans-serif; font-size:30px; line-height:1; color:var(--chalk); letter-spacing:.02em;}
+.pm-sub{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:3px;}
+.pmodal-pills{margin-bottom:18px;}
+.pm-section{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--gold); margin:26px 0 10px;
+}
+.pstat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.pstat{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 10px 12px; text-align:center;
+}
+.pstat .lbl{
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted);
+}
+.pstat .val{
+  font-family:'Teko',sans-serif; font-size:36px; line-height:1;
+  color:var(--chalk); margin:6px 0 8px;
+}
+.rank-badge{
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:10.5px;
+  border-radius:20px; padding:3px 9px; letter-spacing:.02em;
+  border:1px solid var(--line); background:rgba(0,0,0,.22); color:var(--muted);
+}
+.rank-badge.top1{background:rgba(188,212,246,.16); border-color:rgba(188,212,246,.5); color:var(--gold); font-weight:700;}
+.rank-badge.top3{border-color:rgba(130,173,232,.45); color:var(--clay-bright);}
+.rank-badge.na{opacity:.75;}
+.pm-note{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted);
+  margin:10px 2px 0; opacity:.85; line-height:1.5;
+}
+.pm-empty{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:34px 20px; text-align:center; color:var(--muted); font-size:13.5px;
+}
+@media (max-width:700px){
+  .pmodal-inner{padding:0 10px 50px;}
+  .pmodal-head{margin:0 -10px 16px; padding:11px 12px;}
+  .pm-name{font-size:26px;}
+  .pstat-grid{grid-template-columns:repeat(2,1fr); gap:8px;}
+  .pstat .val{font-size:31px;}
+}
+
 /* scoreboard tiles */
 .board{
   display:grid;
@@ -663,7 +731,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
   <section class="panel active" id="panel-batters">
     <div class="section-head">
       <h2 id="battersTitle">타자 부문</h2>
-      <div class="note">헤더 클릭 = 정렬 · 선수 클릭 = 연도별 기록</div>
+      <div class="note">헤더 클릭 = 정렬 · 선수 클릭 = 개인 기록 카드</div>
     </div>
     <div class="leaders" id="leaders"></div>
     <div class="leaders-note" id="leadersNote"></div>
@@ -811,6 +879,24 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
 
 </main>
 
+<!-- 선수 카드: 이름 클릭 시 전체화면으로 열리는 개인 기록 페이지 -->
+<div class="pmodal" id="playerModal" role="dialog" aria-modal="true" aria-labelledby="pmName">
+  <div class="pmodal-backdrop" data-close></div>
+  <div class="pmodal-sheet">
+    <div class="pmodal-inner">
+      <div class="pmodal-head">
+        <button class="pmodal-back" data-close aria-label="닫기">←</button>
+        <div class="pmodal-title">
+          <div class="pm-name" id="pmName"></div>
+          <div class="pm-sub" id="pmSub"></div>
+        </div>
+      </div>
+      <div class="year-pills pmodal-pills" id="pmYearPills"></div>
+      <div id="pmBody"></div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <div class="ball">⚾</div>
   <span id="footerText">TEAMONE SEASON RECORD</span>
@@ -945,10 +1031,11 @@ function gamesForScope(scope){
 /* ---------- YEAR PILLS ---------- */
 function renderYearPills(){
   const pills = [...yearKeys.map(y=>({k:y,label:y+' 시즌'})), {k:CAREER,label:'통산'}];
-  document.getElementById('yearPills').innerHTML = pills.map(p=>
+  const host = document.getElementById('yearPills');
+  host.innerHTML = pills.map(p=>
     `<button class="year-pill ${p.k===currentYear?'active':''}" data-y="${p.k}">${p.label}</button>`
   ).join('');
-  document.querySelectorAll('.year-pill').forEach(btn=>{
+  host.querySelectorAll('.year-pill').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       currentYear = btn.dataset.y;
       openPlayer = null;
@@ -1099,24 +1186,115 @@ function renderBatterBody(){
   document.getElementById('battersTitle').textContent = `${label} 타자 부문 · 전체 ${total}명`;
   const body = document.getElementById('batterBody');
   body.innerHTML = rows.map((r,i)=>{
-    const isOpen = openPlayer === r['이름'];
     const rankCell = `<td class="rank-cell">${i+1}</td>`;
-    const mainRow = `<tr class="playerrow ${isOpen?'open':''}" data-name="${r['이름']}">` + rankCell + batterCols.map(c=>{
+    return `<tr class="playerrow" data-name="${r['이름']}">` + rankCell + batterCols.map(c=>{
       const v = r[c.k];
       const cls = (c.k===batterSort.col) ? 'hl' : ((v===0||v===null)?'zero':'');
       return `<td class="${cls}">${c.fmt(v)}</td>`;
     }).join('') + `</tr>`;
-    const breakdownRow = `<tr class="breakdown-row ${isOpen?'open':''}"><td colspan="${batterCols.length+1}">${isOpen?renderBatterBreakdown(r['이름']):''}</td></tr>`;
-    return mainRow + breakdownRow;
   }).join('');
   body.querySelectorAll('tr.playerrow').forEach(tr=>{
-    tr.addEventListener('click', ()=>{
-      const name = tr.dataset.name;
-      openPlayer = (openPlayer === name) ? null : name;
-      renderBatterBody();
-    });
+    tr.addEventListener('click', ()=> openPlayerCard(tr.dataset.name));
   });
 }
+
+/* ---------- PLAYER CARD ---------- */
+/* 주요 기록 6개를 팀 내 순위와 함께 보여주는 전체화면 카드.
+   타율·OPS 순위는 타이틀과 동일한 규정타석 로직을 그대로 따른다. */
+const cardStatDefs = [
+  {key:'타율', label:'타율', fmt:fmtAvg, rate:true},
+  {key:'안타계', label:'안타', fmt:fmtInt},
+  {key:'타점', label:'타점', fmt:fmtInt},
+  {key:'OPS', label:'OPS', fmt:fmtOps, rate:true},
+  {key:'볼넷', label:'볼넷', fmt:fmtInt},
+  {key:'삼진', label:'삼진', fmt:fmtInt, moreIsWorse:true},
+];
+let cardPlayer = null;
+
+function rankOf(pool, key, val){
+  const better = pool.filter(p=>(p[key]||0) > val).length;
+  const tied = pool.filter(p=>(p[key]||0) === val).length;
+  return {rank:better+1, tied, of:pool.length};
+}
+
+function renderPlayerCard(){
+  if (!cardPlayer) return;
+  const games = gamesForScope(currentYear);
+  const all = aggregateBattersByPlayer(games).filter(b=>b['게임']);
+  const me = all.find(p=>p['이름']===cardPlayer);
+  const scopeLabel = currentYear===CAREER ? '통산' : currentYear+' 시즌';
+
+  document.getElementById('pmName').textContent = cardPlayer;
+  document.getElementById('pmSub').textContent = me
+    ? `${scopeLabel} · ${me['게임']}경기 · ${me['타석']}타석`
+    : `${scopeLabel} · 기록 없음`;
+
+  const pills = [...yearKeys.map(y=>({k:y,label:y+' 시즌'})), {k:CAREER,label:'통산'}];
+  const pillHost = document.getElementById('pmYearPills');
+  pillHost.innerHTML = pills.map(p=>
+    `<button class="year-pill ${p.k===currentYear?'active':''}" data-y="${p.k}">${p.label}</button>`
+  ).join('');
+  pillHost.querySelectorAll('.year-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentYear = btn.dataset.y;
+      renderAll();        // 뒤에 깔린 페이지도 같은 연도로 맞춰둔다
+      renderPlayerCard(); // 카드는 새 연도 기준으로 다시 그린다
+    });
+  });
+
+  const body = document.getElementById('pmBody');
+  if (!me){
+    body.innerHTML = `<div class="pm-empty">${scopeLabel}에는 <b>${cardPlayer}</b> 선수의 타격 기록이 없어요.</div>`;
+    return;
+  }
+
+  const minPA = Math.ceil(games.length * QUALIFY_PA_PER_GAME);
+  const qualified = (me['타석']||0) >= minPA;
+
+  const tiles = cardStatDefs.map(d=>{
+    let badge;
+    if (d.rate && !qualified){
+      badge = `<span class="rank-badge na">규정타석 미달</span>`;
+    } else {
+      const pool = d.rate ? all.filter(p=>(p['타석']||0) >= minPA) : all;
+      const r = rankOf(pool, d.key, me[d.key]||0);
+      const cls = r.rank===1 ? 'top1' : (r.rank<=3 ? 'top3' : '');
+      const tie = r.tied>1 ? '공동 ' : '';
+      badge = `<span class="rank-badge ${cls}">${tie}${r.rank}위 / ${r.of}명</span>`;
+    }
+    return `<div class="pstat">
+      <div class="lbl">${d.label}</div>
+      <div class="val">${d.fmt(me[d.key])}</div>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  body.innerHTML =
+    `<div class="pm-section">주요 기록 · 팀 내 순위</div>
+     <div class="pstat-grid">${tiles}</div>
+     <div class="pm-note">＊ 타율·OPS 순위는 규정타석(${minPA}타석) 충족 선수끼리만 매겨요. 삼진은 많은 순 기준이에요.</div>
+     <div class="pm-section">연도별 기록 · 경기별 로그</div>
+     ${renderBatterBreakdown(cardPlayer)}`;
+}
+
+function openPlayerCard(name){
+  cardPlayer = name;
+  renderPlayerCard();
+  document.getElementById('playerModal').classList.add('open');
+  document.getElementById('playerModal').querySelector('.pmodal-sheet').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+function closePlayerCard(){
+  cardPlayer = null;
+  document.getElementById('playerModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('#playerModal [data-close]').forEach(el=>{
+  el.addEventListener('click', closePlayerCard);
+});
+document.addEventListener('keydown', e=>{
+  if (e.key === 'Escape' && cardPlayer) closePlayerCard();
+});
 
 const QUALIFY_PA_PER_GAME = 1.0; // 팀원 특성상 완화: 경기수만큼(19경기=19타석)
 const leaderDefs = [
