@@ -1148,7 +1148,8 @@ function renderBatterBreakdown(name){
   // per-game log for this player, within current scope
   const logGames = gamesForScope(currentYear)
     .map(g=>({g, b:g.batters.find(x=>x['이름']===name && x['게임'])}))
-    .filter(x=>x.b);
+    .filter(x=>x.b)
+    .sort((a,b)=> gameSortVal(a.g).localeCompare(gameSortVal(b.g)));
   const logCols = [
     {k:'타석',l:'타석'},{k:'타수',l:'타수'},{k:'안타계',l:'안타'},{k:'홈런',l:'홈런'},
     {k:'타점',l:'타점'},{k:'득점',l:'득점'},{k:'도루',l:'도루'},{k:'볼넷',l:'볼넷'},{k:'삼진',l:'삼진'},
@@ -1418,7 +1419,8 @@ function renderPitcherBreakdown(name){
 
   const logGames = gamesForScope(currentYear)
     .map(g=>({g, p:g.pitchers.find(x=>x['이름']===name)}))
-    .filter(x=>x.p && pitcherAppeared(x.p));
+    .filter(x=>x.p && pitcherAppeared(x.p))
+    .sort((a,b)=> gameSortVal(a.g).localeCompare(gameSortVal(b.g)));
   const logCols = [
     {k:'이닝',l:'이닝',fmt:fmtIP},{k:'투구수',l:'투구수',fmt:fmtInt},{k:'타자',l:'상대타자',fmt:fmtInt},{k:'피안타',l:'피안타',fmt:fmtInt},
     {k:'볼넷',l:'볼넷',fmt:fmtInt},{k:'탈삼진',l:'탈삼진',fmt:fmtInt},{k:'실점',l:'실점',fmt:fmtInt},{k:'자책점',l:'자책점',fmt:fmtInt},
