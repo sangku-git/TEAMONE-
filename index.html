@@ -870,7 +870,8 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
     </div>
 
     <div class="section-head" style="margin-top:36px;">
-      <h2 style="font-size:24px;">직접 입력한 경기 관리</h2>
+      <h2 style="font-size:24px;">경기 기록 관리</h2>
+      <div class="note">모든 경기를 여기서 수정·삭제할 수 있어요</div>
     </div>
     <div class="games-list" id="userGamesList"></div>
 
@@ -2066,8 +2067,9 @@ async function handleSaveGame(){
 
 function renderUserGamesList(){
   const wrap = document.getElementById('userGamesList');
-  const userGames = [...ALL_GAMES].filter(g=>g.source==='user').sort((a,b)=> (b.year+b.date_code).localeCompare(a.year+a.date_code));
-  if (!userGames.length){ wrap.innerHTML = '<div class="empty">아직 직접 입력한 경기가 없어요.</div>'; return; }
+  // 시드/직접입력 구분 없이 모든 경기를 관리할 수 있게 노출한다
+  const userGames = [...ALL_GAMES].sort((a,b)=> (b.year+b.date_code).localeCompare(a.year+a.date_code));
+  if (!userGames.length){ wrap.innerHTML = '<div class="empty">아직 입력된 경기가 없어요.</div>'; return; }
   wrap.innerHTML = userGames.map(g=>{
     const {m,d} = fmtDate(g.date_code);
     const res = g.result || {};
@@ -2092,7 +2094,19 @@ function renderUserGamesList(){
       if (!confirm('이 경기 기록을 삭제할까요? 되돌릴 수 없어요.')) return;
       const id = btn.dataset.id;
       btn.disabled = true; btn.textContent = '삭제 중...';
-      await deleteStoredGame(id);
+      const game = ALL_GAMES.find(g=>g.id === id);
+      try {
+        if (game && game.source !== 'user'){
+          // 시드 경기는 행을 지워도 되살아나므로 삭제 표시를 저장해 둔다
+          await persistNewGame({...game, deleted:true});
+        } else {
+          await deleteStoredGame(id);
+        }
+      } catch(e){
+        alert(e.message || '삭제에 실패했어요.');
+        btn.disabled = false; btn.textContent = '삭제';
+        return;
+      }
       ALL_GAMES = ALL_GAMES.filter(g=>g.id !== id);
       rebuildYearsMap();
       openPlayer = null; openPitcher = null;
@@ -2116,7 +2130,8 @@ function mergeGames(stored){
   const map = new Map();
   SEED_GAMES.forEach(g=>map.set(g.id, g));
   stored.forEach(g=>map.set(g.id, g)); // stored edits override seed games with the same id
-  ALL_GAMES = [...map.values()];
+  // 시드 경기는 시트에서 행을 지워도 되살아나므로, 삭제 표시(deleted)를 저장해 걸러낸다
+  ALL_GAMES = [...map.values()].filter(g=>!g.deleted);
   rebuildYearsMap();
 }
 
