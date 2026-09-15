@@ -681,11 +681,17 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
   margin:8px 0 22px;
 }
 .btn-add-row:hover{border-color:var(--clay-bright); color:var(--chalk-dim);}
-.entry-actions{display:flex; align-items:center; gap:14px; margin-top:8px;}
+.entry-actions{display:flex; align-items:center; gap:14px; margin-top:8px; flex-wrap:wrap;}
 .btn-save{
   background:var(--gold); color:var(--bg-deep); border:none; border-radius:8px;
   padding:12px 26px; font-family:'Teko',sans-serif; font-size:18px; font-weight:700;
   letter-spacing:.03em; cursor:pointer;
+  white-space:nowrap; flex-shrink:0;
+}
+/* 좁은 화면에서는 버튼이 줄바꿈되지 않도록 줄이고, 안내문은 아래 줄로 내린다 */
+@media (max-width:560px){
+  .btn-save{padding:11px 18px; font-size:16px;}
+  .entry-actions .save-status{flex-basis:100%; margin-top:2px;}
 }
 .btn-save:hover{filter:brightness(1.08);}
 .btn-save:disabled{opacity:.5; cursor:not-allowed;}
@@ -1798,7 +1804,7 @@ async function loadStoredGames(){
    Content-Type 을 text/plain 으로 고정해 CORS preflight 를 피한다(단순 요청).
    그래도 막히면 no-cors 로 한 번 더 보낸다 — 요청은 전달되지만 응답을 읽을 수 없어
    성공 여부를 확인할 수 없으므로 confirmed:false 로 알린다. */
-async function postToSheet(payload){
+async function postToSheet(payload, verify){
   const body = JSON.stringify(payload);
   const opts = {
     method: 'POST',
@@ -1823,6 +1829,17 @@ async function postToSheet(payload){
   }
   try {
     await fetch(APPS_SCRIPT_URL, {...opts, mode:'no-cors'});
+    // no-cors 는 응답을 읽을 수 없으므로, 읽기(GET)로 실제 반영됐는지 확인한다
+    if (verify){
+      for (let i = 0; i < 2; i++){
+        await new Promise(r=>setTimeout(r, 700));
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, { cache:'no-store' });
+          const data = await res.json();
+          if (verify(data.games || [])) return { confirmed: true };
+        } catch(e){ /* 확인 실패 시 다음 시도 */ }
+      }
+    }
     return { confirmed: false };
   } catch(e){
     throw new Error(`저장 요청을 보내지 못했어요 (${lastErr && lastErr.message || '네트워크 오류'}). 네트워크 상태를 확인하고 다시 시도해주세요.`);
@@ -1831,7 +1848,10 @@ async function postToSheet(payload){
 
 async function persistNewGame(game){
   if (!hasStorage) throw new Error('아직 저장소가 연결되지 않았어요. SETUP.md를 참고해 구글시트 연동을 완료해주세요.');
-  const r = await postToSheet({ action:'save', game });
+  const r = await postToSheet({ action:'save', game }, games=>{
+    const g = games.find(x=>x.id === game.id);
+    return !!g && g.league === game.league && !!g.deleted === !!game.deleted;
+  });
   // keep the local cache in sync (upsert)
   const cache = readCache() || [];
   const i = cache.findIndex(g => g.id === game.id);
