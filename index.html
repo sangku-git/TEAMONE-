@@ -778,7 +778,7 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
       <div class="note">최근 폼 · 상대 전적 · 명예의 전당</div>
     </div>
 
-    <h3 class="team-sub">최근 폼 <span class="team-sub-note">최근 5경기</span></h3>
+    <h3 class="team-sub">최근 폼 <span class="team-sub-note">최근 5경기 · 5타수 이상</span></h3>
     <div class="form-strip" id="formStrip"></div>
     <div class="hot-players" id="hotPlayers"></div>
 
@@ -1672,7 +1672,7 @@ function renderTeamRecords(){
     <div class="hot-card">
       <div class="hc-label">${i===0?'🔥 최근 가장 뜨거운 타자':'최근 폼 '+(i+1)+'위'}</div>
       <div class="hc-name">${p['이름']}</div>
-      <div class="hc-stat">최근 ${p['게임']}경기 · 타율 ${fmtAvg(p['타율'])} · OPS ${fmtOps(p['OPS'])} · ${p['안타계']}안타</div>
+      <div class="hc-stat">최근 ${recentGames.length}경기 중 ${p['게임']}경기 출전 · 타율 ${fmtAvg(p['타율'])} · OPS ${fmtOps(p['OPS'])} · ${p['안타계']}안타</div>
     </div>`).join('');
 
   /* --- 상대팀별 전적 --- */
