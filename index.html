@@ -705,6 +705,105 @@ footer .ball{font-size:16px; margin-bottom:8px; opacity:.6;}
 }
 .game-delete:hover{background:rgba(193,83,62,.14);}
 .loading-note{padding:60px 20px; text-align:center; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:13px;}
+
+/* ---------- 데스크톱 글자 크기 ----------
+   기본값은 휴대폰 기준으로 맞춰져 있어서 큰 화면에서는 잔글씨가 너무 작다.
+   아래 블록은 1000px 이상에서만 적용되므로 휴대폰 레이아웃에는 영향이 없다. */
+@media (min-width:1000px){
+  /* 헤더 · 내비 */
+  .hero-eyebrow{font-size:13.5px;}
+  .hero-sub{font-size:16.5px;}
+  .year-pill{font-size:14px;}
+  .tab{font-size:22px;}
+  .tile .lbl{font-size:11.5px;}
+  .section-head .note{font-size:14px;}
+
+  /* 타자 순위 타일 */
+  .leader-card .cat{font-size:12px;}
+  .rank-row .rank-num{font-size:17px; width:15px;}
+  .rank-row .rank-name{font-size:14px;}
+  .rank-row .rank-val{font-size:13.5px;}
+  .rank-row.rank-1 .rank-num{font-size:22px;}
+  .rank-row.rank-1 .rank-name{font-size:17.5px;}
+  .rank-row.rank-1 .rank-val{font-size:27px;}
+  .empty-tier{font-size:14px;}
+  .leaders-note{font-size:12.5px;}
+
+  /* 기록표 */
+  table{font-size:14.5px;}
+  thead th{font-size:12.5px;}
+  tbody td:first-child{font-size:12.5px;}
+  .slot-tag{font-size:11px;}
+  .subtag{font-size:11px;}
+  .pos-line{font-size:12.5px;}
+  .rank-cell{font-size:12.5px;}
+  .log-title{font-size:11.5px;}
+  .sticky-col1 tbody td:first-child{font-size:16px;}
+  .sticky-col2 tbody td:nth-child(2){font-size:16px;}
+  .sticky-col2 tbody tr.subrow td:nth-child(2){font-size:14.5px;}
+  .breakdown-inner table{font-size:13.5px;}
+  .breakdown-inner thead th{font-size:11.5px;}
+
+  /* 경기별 기록 카드 */
+  .game-date{font-size:29px;}
+  .game-date small{font-size:12px;}
+  .game-vs{font-size:16.5px;}
+  .result-badge{font-size:12.5px;}
+  .score{font-size:14.5px;}
+  .game-vs .tag{font-size:11px;}
+  .game-note{font-size:12.5px;}
+  .game-edit{font-size:13px;}
+  .game-delete{font-size:12.5px;}
+  .game-body-inner table{font-size:15.5px;}
+  .game-body-inner tbody td:first-child,
+  .game-body-inner tbody td:nth-child(2){font-size:15.5px;}
+  .game-body-inner thead th{font-size:12.5px;}
+  .game-body-inner h4{font-size:12px;}
+
+  /* 팀 기록 */
+  .team-sub{font-size:27px;}
+  .team-sub-note{font-size:12.5px;}
+  .form-chip .fc-date{font-size:22px;}
+  .form-chip .fc-date small{font-size:10px;}
+  .form-chip .fc-info{font-size:13.5px;}
+  .hot-card .hc-label{font-size:11.5px;}
+  .hot-card .hc-name{font-size:17.5px;}
+  .hot-card .hc-stat{font-size:13.5px;}
+  .hof-card .hof-cat{font-size:11.5px;}
+  .hof-card .hof-holder{font-size:17.5px;}
+  .hof-card .hof-val{font-size:33px;}
+  .hof-card .hof-when{font-size:12px;}
+  .hof-card .hof-tie{font-size:12.5px;}
+
+  /* 개인 기록 카드 */
+  .pm-name{font-size:33px;}
+  .pm-sub{font-size:12.5px;}
+  .pm-section{font-size:12px;}
+  .pstat .lbl{font-size:11.5px;}
+  .pstat .val{font-size:40px;}
+  .rank-badge{font-size:12px;}
+  .pm-note{font-size:12.5px;}
+  .pm-empty{font-size:15px;}
+
+  /* 기록 입력 */
+  .share-note{font-size:14px;}
+  .edit-banner{font-size:14px;}
+  .edit-banner button{font-size:12.5px;}
+  .entry-grid label{font-size:12px;}
+  .entry-grid input, .entry-grid select{font-size:14.5px;}
+  .result-preview{font-size:14px;}
+  .entry-table-scroll table{font-size:13px;}
+  .entry-table-scroll input{font-size:13px;}
+  .entry-table-scroll select{font-size:12.5px;}
+  .btn-add-row{font-size:13px;}
+  .btn-save{font-size:20px;}
+  .save-status{font-size:14px;}
+
+  /* 기타 */
+  .empty{font-size:14.5px;}
+  .loading-note{font-size:14.5px;}
+  footer{font-size:13.5px;}
+}
 </style>
 </head>
 <body>
