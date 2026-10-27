@@ -265,7 +265,7 @@ main{padding:36px 0 90px;}
 
 /* leader cards */
 .leaders{
-  display:grid; grid-template-columns:repeat(6,1fr); gap:10px;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
   margin-bottom:10px;
 }
 @media (max-width:1100px){.leaders{grid-template-columns:repeat(3,1fr);}}
@@ -1344,6 +1344,8 @@ const leaderDefs = [
   {label:'홈런왕', key:'홈런', fmt:fmtInt},
   {label:'타점왕', key:'타점', fmt:fmtInt},
   {label:'도루왕', key:'도루', fmt:fmtInt},
+  {label:'볼넷왕', key:'볼넷', fmt:fmtInt},
+  {label:'출루율 1위', key:'출루율', fmt:fmtAvg, rate:true},
   {label:'OPS 1위', key:'OPS', fmt:fmtOps, rate:true},
 ];
 function renderLeaders(){
@@ -1384,7 +1386,7 @@ function renderLeaders(){
     return `<div class="leader-card"><div class="cat">${d.label}</div>${rows}</div>`;
   }).join('');
   document.getElementById('leadersNote').innerHTML =
-    `＊ 타율왕·OPS 1위는 규정타석(경기수×${QUALIFY_PA_PER_GAME.toFixed(1)} = ${minPA}타석) 이상만 집계돼요. 동점이면 공동 순위로 묶여요.`;
+    `＊ 타율왕·출루율·OPS 1위는 규정타석(경기수×${QUALIFY_PA_PER_GAME.toFixed(1)} = ${minPA}타석) 이상만 집계돼요. 동점이면 공동 순위로 묶여요.`;
 }
 
 /* ---------- PITCHERS ---------- */
